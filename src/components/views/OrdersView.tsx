@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { Search, Filter, Download, RefreshCw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Expense } from '@/types';
-import { cn } from '@/lib/utils';
+import { cn, formatIndianNumber } from '@/lib/utils';
 
 interface OrdersViewProps {
   expenses: Expense[];
@@ -161,13 +161,13 @@ export function OrdersView({ expenses, onDelete }: OrdersViewProps) {
                             <span>{expense.cuisine}</span>
                           </div>
                         </div>
-                        <span className="text-lg font-bold">${expense.amount.toFixed(2)}</span>
+                        <span className="text-lg font-bold">₹{formatIndianNumber(expense.amount)}</span>
                       </div>
 
                       {/* Split Bill Info */}
                       {expense.splitBill && (
-                        <div className="mt-2 px-3 py-1.5 rounded-lg bg-emerald/10 text-emerald text-sm inline-block">
-                          Split with {expense.splitBill.people} people • Your share: ${expense.splitBill.yourShare.toFixed(2)}
+                        <div className="mt-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 text-sm inline-block">
+                          Split with {expense.splitBill.people} people • Your share: ₹{formatIndianNumber(expense.splitBill.yourShare)}
                         </div>
                       )}
 

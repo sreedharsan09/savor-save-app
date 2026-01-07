@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Target, TrendingUp, AlertCircle, CheckCircle, DollarSign } from 'lucide-react';
+import { Target, TrendingUp, AlertCircle, CheckCircle, IndianRupee } from 'lucide-react';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
-import { cn } from '@/lib/utils';
+import { cn, formatIndianNumber } from '@/lib/utils';
 
 interface BudgetViewProps {
   budget: number;
@@ -27,16 +27,16 @@ export function BudgetView({ budget, spent, remaining, percentage, onUpdateBudge
   };
 
   const categoryBudgets = [
-    { name: 'Dine-in', budget: 200, spent: 145, color: 'bg-amber-500' },
-    { name: 'Delivery', budget: 250, spent: 180, color: 'bg-orange-500' },
-    { name: 'Takeout', budget: 150, spent: 65, color: 'bg-emerald-500' },
-    { name: 'Coffee & Drinks', budget: 100, spent: 55, color: 'bg-violet-500' },
-    { name: 'Groceries', budget: 100, spent: 40, color: 'bg-blue-500' },
+    { name: 'Dine-in', budget: 5000, spent: 3625, color: 'bg-amber-500' },
+    { name: 'Delivery', budget: 4000, spent: 2880, color: 'bg-orange-500' },
+    { name: 'Takeout', budget: 2500, spent: 1300, color: 'bg-emerald-500' },
+    { name: 'Coffee & Drinks', budget: 2000, spent: 1100, color: 'bg-violet-500' },
+    { name: 'Groceries', budget: 1500, spent: 600, color: 'bg-blue-500' },
   ];
 
   const tips = [
     { emoji: '💡', text: 'You spend 40% more on weekends. Try meal prepping on Sundays!' },
-    { emoji: '🎯', text: 'At this rate, you\'ll save $85 by month end. Keep it up!' },
+    { emoji: '🎯', text: `At this rate, you'll save ₹${formatIndianNumber(Math.max(0, remaining))} by month end. Keep it up!` },
     { emoji: '🍕', text: 'Italian restaurants are your biggest expense. Look for deals!' },
   ];
 
@@ -88,7 +88,7 @@ export function BudgetView({ budget, spent, remaining, percentage, onUpdateBudge
                 strokeLinecap="round"
                 strokeDasharray={`${2 * Math.PI * 88}`}
                 initial={{ strokeDashoffset: 2 * Math.PI * 88 }}
-                animate={{ strokeDashoffset: 2 * Math.PI * 88 * (1 - percentage / 100) }}
+                animate={{ strokeDashoffset: 2 * Math.PI * 88 * (1 - Math.min(percentage, 100) / 100) }}
                 transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
               />
             </svg>
@@ -96,12 +96,12 @@ export function BudgetView({ budget, spent, remaining, percentage, onUpdateBudge
               <span className="text-sm text-muted-foreground">Spent</span>
               <AnimatedCounter
                 value={spent}
-                prefix="$"
+                prefix="₹"
                 decimals={0}
                 className="text-3xl font-bold"
               />
               <span className="text-sm text-muted-foreground">
-                of ${budget}
+                of ₹{formatIndianNumber(budget)}
               </span>
             </div>
           </div>
@@ -111,7 +111,7 @@ export function BudgetView({ budget, spent, remaining, percentage, onUpdateBudge
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 rounded-xl bg-muted/50">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-4 h-4 text-muted-foreground" />
+                  <IndianRupee className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Monthly Budget</span>
                 </div>
                 {isEditing ? (
@@ -133,7 +133,7 @@ export function BudgetView({ budget, spent, remaining, percentage, onUpdateBudge
                   </div>
                 ) : (
                   <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold">${budget}</span>
+                    <span className="text-xl font-bold">₹{formatIndianNumber(budget)}</span>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -154,10 +154,11 @@ export function BudgetView({ budget, spent, remaining, percentage, onUpdateBudge
                 <span
                   className={cn(
                     'text-xl font-bold',
-                    remaining < 0 ? 'text-destructive' : 'text-emerald'
+                    remaining < 0 ? 'text-destructive' : 'text-emerald-500'
                   )}
                 >
-                  ${remaining.toFixed(2)}
+                  ₹{formatIndianNumber(Math.abs(remaining))}
+                  {remaining < 0 && ' over'}
                 </span>
               </div>
             </div>
@@ -168,7 +169,7 @@ export function BudgetView({ budget, spent, remaining, percentage, onUpdateBudge
                 'flex items-center gap-3 p-4 rounded-xl',
                 status === 'danger' && 'bg-destructive/10',
                 status === 'warning' && 'bg-amber-500/10',
-                status === 'healthy' && 'bg-emerald/10'
+                status === 'healthy' && 'bg-emerald-500/10'
               )}
             >
               {status === 'danger' ? (
@@ -176,7 +177,7 @@ export function BudgetView({ budget, spent, remaining, percentage, onUpdateBudge
               ) : status === 'warning' ? (
                 <AlertCircle className="w-5 h-5 text-amber-500" />
               ) : (
-                <CheckCircle className="w-5 h-5 text-emerald" />
+                <CheckCircle className="w-5 h-5 text-emerald-500" />
               )}
               <p className="text-sm">
                 {status === 'danger' && "You've exceeded 90% of your budget!"}
@@ -210,7 +211,7 @@ export function BudgetView({ budget, spent, remaining, percentage, onUpdateBudge
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{cat.name}</span>
                   <span className="text-sm text-muted-foreground">
-                    ${cat.spent} / ${cat.budget}
+                    ₹{formatIndianNumber(cat.spent)} / ₹{formatIndianNumber(cat.budget)}
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
