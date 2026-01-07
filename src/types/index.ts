@@ -36,7 +36,11 @@ export interface Budget {
 export interface UserProfile {
   name: string;
   email: string;
+  phone?: string;
+  location?: string;
   avatar: string;
   dietaryPreferences: string[];
   favoriteCuisines: string[];
+  spiceTolerance?: 'mild' | 'medium' | 'hot' | 'extra-hot';
+  monthlyBudget?: number;
 }

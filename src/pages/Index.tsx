@@ -9,21 +9,20 @@ import { DiscoverView } from '@/components/views/DiscoverView';
 import { AnalyticsView } from '@/components/views/AnalyticsView';
 import { BudgetView } from '@/components/views/BudgetView';
 import { OrdersView } from '@/components/views/OrdersView';
+import { ProfileView } from '@/components/views/ProfileView';
 import { AddExpenseModal } from '@/components/expenses/AddExpenseModal';
-import { useExpenses } from '@/hooks/useExpenses';
-import { useBudget } from '@/hooks/useBudget';
+import { AppProvider, useAppContext } from '@/context/AppContext';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 
-const Index = () => {
+function AppContent() {
   const [showLanding, setShowLanding] = useState(true);
   const [activeView, setActiveView] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
 
-  const { expenses, addExpense, deleteExpense, getTotalSpent } = useExpenses();
+  const { expenses, addExpense, deleteExpense, getTotalSpent, monthlyBudget, budgetRemaining, budgetPercentage, setMonthlyBudget } = useAppContext();
   const totalSpent = getTotalSpent();
-  const { budget, budgetRemaining, budgetPercentage, updateMonthlyBudget } = useBudget(totalSpent);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
@@ -66,7 +65,7 @@ const Index = () => {
           >
             {[
               { value: 10000, suffix: '+', label: 'Restaurants' },
-              { value: 2, prefix: '$', suffix: 'M+', label: 'Tracked' },
+              { value: 2, prefix: '₹', suffix: 'Cr+', label: 'Tracked' },
               { value: 50, suffix: '+', label: 'Cuisines' },
             ].map((stat, i) => (
               <div key={i} className="text-center">
@@ -164,11 +163,18 @@ const Index = () => {
               {activeView === 'budget' && (
                 <BudgetView
                   key="budget"
-                  budget={budget.monthly}
+                  budget={monthlyBudget}
                   spent={totalSpent}
                   remaining={budgetRemaining}
                   percentage={budgetPercentage}
-                  onUpdateBudget={updateMonthlyBudget}
+                  onUpdateBudget={setMonthlyBudget}
+                />
+              )}
+              {activeView === 'profile' && (
+                <ProfileView
+                  key="profile"
+                  isDarkMode={isDarkMode}
+                  onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
                 />
               )}
             </AnimatePresence>
@@ -185,6 +191,12 @@ const Index = () => {
       />
     </div>
   );
-};
+}
+
+const Index = () => (
+  <AppProvider>
+    <AppContent />
+  </AppProvider>
+);
 
 export default Index;
