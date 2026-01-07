@@ -140,6 +140,7 @@ function AppContent() {
             onAddExpense={() => setShowAddExpense(true)}
             isDarkMode={isDarkMode}
             onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+            onViewChange={setActiveView}
           />
 
           <main className="px-4 md:px-8 py-6">
