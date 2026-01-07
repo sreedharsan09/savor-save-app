@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
   Mail, 
@@ -17,21 +17,38 @@ import {
   Moon,
   Sun,
   Bell,
-  Shield
+  Shield,
+  X,
+  Upload,
+  AlertTriangle
 } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
-import { formatINR, formatIndianNumber } from '@/lib/utils';
+import { formatIndianNumber } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface ProfileViewProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
 }
 
+const defaultAvatars = [
+  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
+];
+
 export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) {
   const { userProfile, updateProfile, expenses, favorites, monthlyBudget, setMonthlyBudget } = useAppContext();
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedProfile, setEditedProfile] = useState(userProfile);
   const [editedBudget, setEditedBudget] = useState(monthlyBudget);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0);
 
@@ -39,6 +56,7 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
     updateProfile(editedProfile);
     setMonthlyBudget(editedBudget);
     setIsEditMode(false);
+    toast.success('✅ Profile updated successfully!');
   };
 
   const handleCancel = () => {
@@ -67,6 +85,70 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
     });
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('Please upload a JPG, PNG, or WebP image');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setEditedProfile({ ...editedProfile, avatar: base64 });
+      updateProfile({ avatar: base64 });
+      setShowAvatarModal(false);
+      toast.success('📸 Profile photo updated!');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSelectAvatar = (avatarUrl: string) => {
+    setEditedProfile({ ...editedProfile, avatar: avatarUrl });
+    updateProfile({ avatar: avatarUrl });
+    setShowAvatarModal(false);
+    toast.success('📸 Avatar updated!');
+  };
+
+  const handleRemoveAvatar = () => {
+    setEditedProfile({ ...editedProfile, avatar: '' });
+    updateProfile({ avatar: '' });
+    setShowAvatarModal(false);
+    toast.success('Avatar removed');
+  };
+
+  const handleExportData = () => {
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      profile: userProfile,
+      expenses: expenses,
+      favorites: favorites,
+      budget: monthlyBudget,
+    };
+    
+    const jsonContent = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `culinary-compass-full-export-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast.success('📦 All data exported successfully!');
+  };
+
   const spiceToleranceIndex = ['mild', 'medium', 'hot', 'extra-hot'].indexOf(editedProfile.spiceTolerance || 'medium');
 
   return (
@@ -89,9 +171,14 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
         </div>
 
         <div className="relative flex flex-col md:flex-row items-center gap-6">
-          {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white border-4 border-white shadow-xl flex items-center justify-center overflow-hidden">
+          {/* Avatar with click to change */}
+          <div className="relative flex-shrink-0 group">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowAvatarModal(true)}
+              className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white border-4 border-white shadow-xl flex items-center justify-center overflow-hidden relative"
+            >
               {editedProfile.avatar ? (
                 <img 
                   src={editedProfile.avatar} 
@@ -101,12 +188,11 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
               ) : (
                 <User size={64} className="text-primary" />
               )}
-            </div>
-            {isEditMode && (
-              <button className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
-                <Camera size={20} className="text-primary" />
-              </button>
-            )}
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera size={24} className="text-white" />
+              </div>
+            </motion.button>
           </div>
 
           {/* User Info */}
@@ -184,7 +270,7 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
           transition={{ delay: 0.1 }}
           className="glass-card rounded-2xl p-6"
         >
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
             <User size={24} className="text-primary" />
             Personal Information
           </h3>
@@ -200,10 +286,10 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
                   type="email"
                   value={editedProfile.email}
                   onChange={(e) => setEditedProfile({ ...editedProfile, email: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg mt-1 bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full px-4 py-2 border border-border rounded-lg mt-1 bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
                 />
               ) : (
-                <p className="font-medium mt-1">{userProfile.email || 'Not set'}</p>
+                <p className="font-medium mt-1 text-foreground">{userProfile.email || 'Not set'}</p>
               )}
             </div>
             <div>
@@ -216,11 +302,11 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
                   type="tel"
                   value={editedProfile.phone || ''}
                   onChange={(e) => setEditedProfile({ ...editedProfile, phone: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg mt-1 bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full px-4 py-2 border border-border rounded-lg mt-1 bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
                   placeholder="+91 98765 43210"
                 />
               ) : (
-                <p className="font-medium mt-1">{userProfile.phone || 'Not set'}</p>
+                <p className="font-medium mt-1 text-foreground">{userProfile.phone || 'Not set'}</p>
               )}
             </div>
             <div>
@@ -233,11 +319,11 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
                   type="text"
                   value={editedProfile.location || ''}
                   onChange={(e) => setEditedProfile({ ...editedProfile, location: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg mt-1 bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full px-4 py-2 border border-border rounded-lg mt-1 bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
                   placeholder="City, State"
                 />
               ) : (
-                <p className="font-medium mt-1">{userProfile.location || 'Not set'}</p>
+                <p className="font-medium mt-1 text-foreground">{userProfile.location || 'Not set'}</p>
               )}
             </div>
           </div>
@@ -250,7 +336,7 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
           transition={{ delay: 0.2 }}
           className="glass-card rounded-2xl p-6"
         >
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
             <UtensilsCrossed size={24} className="text-primary" />
             Food Preferences
           </h3>
@@ -340,7 +426,7 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
         transition={{ delay: 0.3 }}
         className="glass-card rounded-2xl p-6 mb-6"
       >
-        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
           <Wallet size={24} className="text-primary" />
           Budget Settings
         </h3>
@@ -355,7 +441,7 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
                 type="number"
                 value={editedBudget}
                 onChange={(e) => setEditedBudget(Number(e.target.value))}
-                className="w-full px-4 py-2 border border-border rounded-lg bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full px-4 py-2 border border-border rounded-lg bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
                 placeholder="15000"
               />
             ) : (
@@ -395,7 +481,7 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
         transition={{ delay: 0.4 }}
         className="glass-card rounded-2xl p-6 mb-6"
       >
-        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
           <Settings size={24} className="text-primary" />
           App Settings
         </h3>
@@ -405,7 +491,7 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
           <div className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors">
             <div className="flex items-center gap-3">
               {isDarkMode ? <Moon size={20} className="text-primary" /> : <Sun size={20} className="text-primary" />}
-              <span>Dark Mode</span>
+              <span className="text-foreground">Dark Mode</span>
             </div>
             <button
               onClick={onToggleDarkMode}
@@ -425,7 +511,7 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
           <div className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer">
             <div className="flex items-center gap-3">
               <Bell size={20} className="text-primary" />
-              <span>Notifications</span>
+              <span className="text-foreground">Notifications</span>
             </div>
             <ChevronRight size={20} className="text-muted-foreground" />
           </div>
@@ -434,37 +520,203 @@ export function ProfileView({ isDarkMode, onToggleDarkMode }: ProfileViewProps) 
           <div className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer">
             <div className="flex items-center gap-3">
               <Shield size={20} className="text-primary" />
-              <span>Privacy & Security</span>
+              <span className="text-foreground">Privacy & Security</span>
             </div>
             <ChevronRight size={20} className="text-muted-foreground" />
           </div>
         </div>
       </motion.div>
 
-      {/* Account Actions Card */}
+      {/* Data Management Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
         className="glass-card rounded-2xl p-6"
       >
-        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <User size={24} className="text-primary" />
-          Account
+        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
+          <Download size={24} className="text-primary" />
+          Data Management
         </h3>
 
         <div className="space-y-3">
-          <button className="w-full px-4 py-3 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all text-left flex items-center justify-between">
-            <span>Export My Data</span>
-            <Download size={20} />
+          <button 
+            onClick={handleExportData}
+            className="w-full px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all text-left flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <Download size={20} />
+              <div>
+                <span className="font-medium">Export All Data</span>
+                <p className="text-xs opacity-70">Download profile, expenses, and settings</p>
+              </div>
+            </div>
+            <ChevronRight size={20} />
           </button>
 
-          <button className="w-full px-4 py-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-all text-left flex items-center justify-between">
-            <span>Delete Account</span>
-            <Trash2 size={20} />
+          <button 
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-all text-left flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <Trash2 size={20} />
+              <div>
+                <span className="font-medium">Delete All Data</span>
+                <p className="text-xs opacity-70">This action cannot be undone</p>
+              </div>
+            </div>
+            <ChevronRight size={20} />
           </button>
         </div>
       </motion.div>
+
+      {/* Avatar Selection Modal */}
+      <AnimatePresence>
+        {showAvatarModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAvatarModal(false)}
+              className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative z-10 w-[95vw] max-w-md bg-card rounded-2xl shadow-2xl p-6 border border-border"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-foreground">Change Profile Photo</h3>
+                <button
+                  onClick={() => setShowAvatarModal(false)}
+                  className="p-2 rounded-full hover:bg-muted transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Upload Option */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full p-4 border-2 border-dashed border-border rounded-xl hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-center gap-3"
+                >
+                  <Upload size={24} className="text-primary" />
+                  <span className="font-medium text-foreground">Upload Photo</span>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+
+                {/* Default Avatars */}
+                <div>
+                  <p className="text-sm text-muted-foreground mb-3">Or choose an avatar</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {defaultAvatars.map((avatar, i) => (
+                      <motion.button
+                        key={i}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleSelectAvatar(avatar)}
+                        className="aspect-square rounded-full overflow-hidden border-2 border-transparent hover:border-primary transition-all"
+                      >
+                        <img src={avatar} alt={`Avatar ${i + 1}`} className="w-full h-full object-cover" />
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Remove Option */}
+                {editedProfile.avatar && (
+                  <button
+                    onClick={handleRemoveAvatar}
+                    className="w-full p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                  >
+                    Remove Current Photo
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowDeleteModal(false)}
+              className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative z-10 w-[95vw] max-w-md bg-card rounded-2xl shadow-2xl p-6 border border-border"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                  <AlertTriangle size={32} className="text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-2">Delete All Data?</h3>
+                <p className="text-muted-foreground mb-6">
+                  This will permanently delete all your expenses, favorites, and settings. This action cannot be undone.
+                </p>
+
+                <div className="mb-4">
+                  <label className="text-sm text-muted-foreground block mb-2">
+                    Type <span className="font-bold text-red-500">DELETE</span> to confirm
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-muted/50 focus:outline-none focus:ring-2 focus:ring-red-500/20 text-center font-mono text-foreground"
+                    placeholder="DELETE"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setDeleteConfirmText('');
+                    }}
+                    className="flex-1 px-4 py-3 border border-border rounded-xl font-medium hover:bg-muted transition-all text-foreground"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={deleteConfirmText !== 'DELETE'}
+                    onClick={() => {
+                      toast.success('All data cleared');
+                      setShowDeleteModal(false);
+                      setDeleteConfirmText('');
+                    }}
+                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${
+                      deleteConfirmText === 'DELETE'
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-muted text-muted-foreground cursor-not-allowed'
+                    }`}
+                  >
+                    Delete Everything
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
