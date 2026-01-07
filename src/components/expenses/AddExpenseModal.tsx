@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Users, CreditCard, Check, IndianRupee } from 'lucide-react';
+import { X, Users, Check } from 'lucide-react';
 import { expenseCategories, paymentMethods, cuisineCategories } from '@/data/mockData';
-import { cn } from '@/lib/utils';
-import { formatIndianNumber } from '@/lib/utils';
+import { cn, formatIndianNumber } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface AddExpenseModalProps {
@@ -25,6 +24,33 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
   const [time, setTime] = useState(new Date().toTimeString().slice(0, 5));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const amountInputRef = useRef<HTMLInputElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      // Focus amount input when modal opens
+      setTimeout(() => amountInputRef.current?.focus(), 100);
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,33 +108,41 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
     onClose();
   };
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop - Dark overlay */}
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          {/* Backdrop - Full screen dark overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={handleClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            transition={{ duration: 0.2 }}
+            onClick={handleBackdropClick}
+            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
           />
 
-          {/* Modal */}
+          {/* Modal Container */}
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            ref={modalRef}
+            initial={{ opacity: 0, y: 100, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 md:w-full md:max-w-xl"
+            exit={{ opacity: 0, y: 100, scale: 0.9 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300, duration: 0.25 }}
+            className="relative z-10 w-[95vw] max-w-xl max-h-[90vh] m-4"
           >
-            <div className="bg-card rounded-2xl shadow-2xl h-full md:h-auto max-h-[90vh] overflow-hidden flex flex-col border border-border">
-              {/* Header */}
+            <div className="bg-card rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-border">
+              {/* Header - Fixed */}
               <div className="bg-card border-b border-border px-6 py-4 flex items-center justify-between flex-shrink-0">
-                <h2 className="text-2xl font-bold">Add Expense</h2>
+                <h2 className="text-2xl font-bold text-foreground">Add Expense</h2>
                 <motion.button
-                  whileHover={{ scale: 1.1 }}
+                  whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleClose}
                   className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
@@ -118,23 +152,30 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
               </div>
 
               {/* Scrollable Content */}
-              <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+              <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto overscroll-contain">
                 <div className="p-6 space-y-6">
                   {/* Amount Input - LARGE and PROMINENT */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Amount *</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-muted-foreground">₹</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-primary">₹</span>
                       <input
+                        ref={amountInputRef}
                         type="number"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="0"
                         required
-                        autoFocus
-                        className="w-full pl-14 pr-4 py-4 text-3xl font-bold rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        min="1"
+                        max="100000"
+                        className="w-full pl-14 pr-4 py-4 text-3xl font-bold rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground/50"
                       />
                     </div>
+                    {amount && parseFloat(amount) > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        ₹{formatIndianNumber(parseFloat(amount))}
+                      </p>
+                    )}
                   </div>
 
                   {/* Category Selection - Icon Grid */}
@@ -156,7 +197,7 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
                           )}
                         >
                           <span className="text-2xl">{cat.icon}</span>
-                          <span className="text-xs font-medium text-center leading-tight">{cat.label}</span>
+                          <span className="text-xs font-medium text-center leading-tight text-foreground">{cat.label}</span>
                         </motion.button>
                       ))}
                     </div>
@@ -171,7 +212,8 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
                       onChange={(e) => setRestaurant(e.target.value)}
                       placeholder="Where did you eat?"
                       required
-                      className="w-full px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      maxLength={100}
+                      className="w-full px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
 
@@ -181,10 +223,10 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
                     <select
                       value={cuisine}
                       onChange={(e) => setCuisine(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      className="w-full px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
                     >
                       <option value="">Select cuisine</option>
-                      {cuisineCategories.map((c) => (
+                      {cuisineCategories.sort().map((c) => (
                         <option key={c} value={c}>{c}</option>
                       ))}
                     </select>
@@ -198,8 +240,9 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
                         type="date"
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
+                        max={new Date().toISOString().split('T')[0]}
                         required
-                        className="w-full px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="w-full px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
                       />
                     </div>
                     <div className="space-y-2">
@@ -209,7 +252,7 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
                         value={time}
                         onChange={(e) => setTime(e.target.value)}
                         required
-                        className="w-full px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="w-full px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
                       />
                     </div>
                   </div>
@@ -228,8 +271,8 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
                           className={cn(
                             'py-3 rounded-xl border-2 text-sm font-medium transition-all',
                             paymentMethod === method
-                              ? 'border-primary bg-primary/10'
-                              : 'border-border hover:border-primary/50'
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border hover:border-primary/50 text-foreground'
                           )}
                         >
                           {method}
@@ -244,7 +287,7 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
                       <div className="flex items-center gap-3">
                         <Users className="w-5 h-5 text-muted-foreground" />
                         <div>
-                          <p className="font-medium">Split Bill?</p>
+                          <p className="font-medium text-foreground">Split Bill?</p>
                           <p className="text-sm text-muted-foreground">Divide between friends</p>
                         </div>
                       </div>
@@ -274,32 +317,33 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
                           className="space-y-3 overflow-hidden"
                         >
                           <div className="flex items-center justify-between pt-2">
-                            <span className="text-sm text-muted-foreground">Number of people</span>
+                            <span className="text-sm text-muted-foreground">Number of people (2-20)</span>
                             <div className="flex items-center gap-3">
                               <motion.button
                                 type="button"
                                 whileTap={{ scale: 0.9 }}
                                 onClick={() => setSplitPeople(Math.max(2, splitPeople - 1))}
-                                className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted"
+                                className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted text-foreground"
                               >
                                 -
                               </motion.button>
-                              <span className="font-bold text-lg w-8 text-center">{splitPeople}</span>
+                              <span className="font-bold text-lg w-8 text-center text-foreground">{splitPeople}</span>
                               <motion.button
                                 type="button"
                                 whileTap={{ scale: 0.9 }}
-                                onClick={() => setSplitPeople(splitPeople + 1)}
-                                className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted"
+                                onClick={() => setSplitPeople(Math.min(20, splitPeople + 1))}
+                                className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted text-foreground"
                               >
                                 +
                               </motion.button>
                             </div>
                           </div>
                           {amount && parseFloat(amount) > 0 && (
-                            <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-center">
-                              <p className="text-sm">
-                                Per person: <span className="font-bold text-lg">₹{formatIndianNumber(parseFloat(amount) / splitPeople)}</span>
-                              </p>
+                            <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                              <div className="flex justify-between text-sm">
+                                <span>Total: <span className="font-bold">₹{formatIndianNumber(parseFloat(amount))}</span></span>
+                                <span>Per person: <span className="font-bold">₹{formatIndianNumber(parseFloat(amount) / splitPeople)}</span></span>
+                              </div>
                             </div>
                           )}
                         </motion.div>
@@ -309,23 +353,27 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
 
                   {/* Notes */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Notes (optional)</label>
+                    <div className="flex justify-between">
+                      <label className="text-sm font-medium text-muted-foreground">Notes (optional)</label>
+                      <span className="text-xs text-muted-foreground">{notes.length}/200</span>
+                    </div>
                     <textarea
                       value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
+                      onChange={(e) => setNotes(e.target.value.slice(0, 200))}
                       placeholder="Add any additional details..."
                       rows={3}
-                      className="w-full px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                      maxLength={200}
+                      className="w-full px-4 py-3 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
                 </div>
 
-                {/* Footer - Action Buttons */}
-                <div className="sticky bottom-0 bg-card border-t border-border p-6 flex gap-3">
+                {/* Footer - Action Buttons - Fixed at bottom */}
+                <div className="sticky bottom-0 bg-card border-t border-border p-4 md:p-6 flex gap-3">
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="flex-1 px-6 py-3 border-2 border-border rounded-xl font-medium hover:bg-muted transition-all"
+                    className="flex-1 px-6 py-3 border-2 border-border rounded-xl font-medium hover:bg-muted transition-all text-foreground"
                   >
                     Cancel
                   </button>
@@ -370,7 +418,7 @@ export function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps
               </form>
             </div>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );
