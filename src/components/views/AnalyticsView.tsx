@@ -17,7 +17,8 @@ import {
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { weeklySpendingData, categorySpendingData, cuisineSpendingData } from '@/data/mockData';
 import { Expense } from '@/types';
-import { TrendingUp, DollarSign, Utensils, Target } from 'lucide-react';
+import { TrendingUp, IndianRupee, Utensils, Target } from 'lucide-react';
+import { formatIndianNumber } from '@/lib/utils';
 
 interface AnalyticsViewProps {
   expenses: Expense[];
@@ -35,24 +36,24 @@ export function AnalyticsView({ expenses, totalSpent }: AnalyticsViewProps) {
     {
       label: 'Total Spent',
       value: totalSpent,
-      prefix: '$',
-      decimals: 2,
-      icon: DollarSign,
+      prefix: '₹',
+      decimals: 0,
+      icon: IndianRupee,
       gradient: 'from-amber-500 to-orange-600',
     },
     {
       label: 'Avg Per Meal',
       value: avgPerMeal,
-      prefix: '$',
-      decimals: 2,
+      prefix: '₹',
+      decimals: 0,
       icon: Utensils,
       gradient: 'from-emerald-500 to-teal-600',
     },
     {
       label: 'Most Expensive',
       value: mostExpensive?.amount || 0,
-      prefix: '$',
-      decimals: 2,
+      prefix: '₹',
+      decimals: 0,
       subtitle: mostExpensive?.restaurant,
       icon: TrendingUp,
       gradient: 'from-rose-500 to-pink-600',
@@ -140,7 +141,7 @@ export function AnalyticsView({ expenses, totalSpent }: AnalyticsViewProps) {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => `$${value}`}
+                  tickFormatter={(value) => `₹${formatIndianNumber(value)}`}
                 />
                 <Tooltip
                   contentStyle={{
@@ -148,7 +149,7 @@ export function AnalyticsView({ expenses, totalSpent }: AnalyticsViewProps) {
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '12px',
                   }}
-                  formatter={(value: number) => [`$${value.toFixed(2)}`, 'Spent']}
+                  formatter={(value: number) => [`₹${formatIndianNumber(value)}`, 'Spent']}
                 />
                 <Area
                   type="monotone"
@@ -193,7 +194,7 @@ export function AnalyticsView({ expenses, totalSpent }: AnalyticsViewProps) {
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '12px',
                   }}
-                  formatter={(value: number) => [`$${value.toFixed(2)}`, 'Spent']}
+                  formatter={(value: number) => [`₹${formatIndianNumber(value)}`, 'Spent']}
                 />
                 <Legend
                   verticalAlign="middle"
@@ -226,7 +227,7 @@ export function AnalyticsView({ expenses, totalSpent }: AnalyticsViewProps) {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => `$${value}`}
+                  tickFormatter={(value) => `₹${formatIndianNumber(value)}`}
                 />
                 <YAxis
                   type="category"
@@ -244,7 +245,7 @@ export function AnalyticsView({ expenses, totalSpent }: AnalyticsViewProps) {
                     borderRadius: '12px',
                   }}
                   formatter={(value: number, name: string) => [
-                    name === 'amount' ? `$${value.toFixed(2)}` : `${value} orders`,
+                    name === 'amount' ? `₹${formatIndianNumber(value)}` : `${value} orders`,
                     name === 'amount' ? 'Spent' : 'Orders',
                   ]}
                 />

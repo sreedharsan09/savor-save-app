@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X, Heart } from 'lucide-react';
 import { RestaurantCard } from '@/components/restaurants/RestaurantCard';
 import { mockRestaurants, cuisineCategories, dietaryOptions } from '@/data/mockData';
-import { cn } from '@/lib/utils';
+import { cn, getPriceRangeDisplay } from '@/lib/utils';
+import { useAppContext } from '@/context/AppContext';
 
 export function DiscoverView() {
+  const { toggleFavorite, isFavorite } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<number[]>([1, 4]);
   const [showFilters, setShowFilters] = useState(false);
+  const [showOpenOnly, setShowOpenOnly] = useState(false);
 
   const toggleCuisine = (cuisine: string) => {
     setSelectedCuisines((prev) =>
@@ -47,7 +50,9 @@ export function DiscoverView() {
       restaurant.priceRange >= priceRange[0] &&
       restaurant.priceRange <= priceRange[1];
 
-    return matchesSearch && matchesCuisine && matchesDietary && matchesPrice;
+    const matchesOpen = !showOpenOnly || restaurant.isOpen;
+
+    return matchesSearch && matchesCuisine && matchesDietary && matchesPrice && matchesOpen;
   });
 
   return (
@@ -122,6 +127,24 @@ export function DiscoverView() {
             exit={{ opacity: 0, height: 0 }}
             className="mt-4 p-4 rounded-xl bg-card border border-border/50 space-y-4"
           >
+            {/* Open Now Toggle */}
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Open Now</label>
+              <button
+                onClick={() => setShowOpenOnly(!showOpenOnly)}
+                className={cn(
+                  'w-12 h-6 rounded-full transition-colors relative',
+                  showOpenOnly ? 'bg-primary' : 'bg-muted-foreground/30'
+                )}
+              >
+                <motion.div
+                  animate={{ x: showOpenOnly ? 24 : 2 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  className="w-5 h-5 rounded-full bg-white shadow-md absolute top-0.5"
+                />
+              </button>
+            </div>
+
             {/* Dietary Options */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Dietary Preferences</label>
@@ -134,7 +157,7 @@ export function DiscoverView() {
                     className={cn(
                       'px-3 py-1.5 rounded-full text-xs font-medium transition-all',
                       selectedDietary.includes(option)
-                        ? 'bg-emerald text-white'
+                        ? 'bg-emerald-500 text-white'
                         : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                     )}
                   >
@@ -166,7 +189,7 @@ export function DiscoverView() {
                         : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                     )}
                   >
-                    {'$'.repeat(price)}
+                    {getPriceRangeDisplay(price)}
                   </motion.button>
                 ))}
               </div>
@@ -178,6 +201,7 @@ export function DiscoverView() {
                 setSelectedCuisines([]);
                 setSelectedDietary([]);
                 setPriceRange([1, 4]);
+                setShowOpenOnly(false);
               }}
               className="text-sm text-primary font-medium"
             >
@@ -188,8 +212,20 @@ export function DiscoverView() {
       </div>
 
       {/* Active Filters */}
-      {(selectedCuisines.length > 0 || selectedDietary.length > 0) && (
+      {(selectedCuisines.length > 0 || selectedDietary.length > 0 || showOpenOnly) && (
         <div className="flex flex-wrap gap-2">
+          {showOpenOnly && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-sm"
+            >
+              Open Now
+              <button onClick={() => setShowOpenOnly(false)}>
+                <X className="w-3 h-3" />
+              </button>
+            </motion.span>
+          )}
           {selectedCuisines.map((cuisine) => (
             <motion.span
               key={cuisine}
@@ -208,7 +244,7 @@ export function DiscoverView() {
               key={option}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center gap-1 px-3 py-1 rounded-full bg-emerald/10 text-emerald text-sm"
+              className="flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-sm"
             >
               {option}
               <button onClick={() => toggleDietary(option)}>
@@ -227,7 +263,13 @@ export function DiscoverView() {
       {/* Restaurant Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRestaurants.map((restaurant, index) => (
-          <RestaurantCard key={restaurant.id} restaurant={restaurant} index={index} />
+          <RestaurantCard 
+            key={restaurant.id} 
+            restaurant={restaurant} 
+            index={index}
+            isFavorite={isFavorite(restaurant.id)}
+            onToggleFavorite={() => toggleFavorite(restaurant.id)}
+          />
         ))}
       </div>
 
