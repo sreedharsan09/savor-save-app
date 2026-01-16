@@ -5,6 +5,9 @@ import { IndianMenuItem } from '@/types/indian-food';
 import { formatPrice, getSpiceDisplay } from '@/data/indian-food-data';
 import { cn } from '@/lib/utils';
 import { useIndianFood } from '@/context/IndianFoodContext';
+import { RazorpayCheckout } from '@/components/payments/RazorpayCheckout';
+import { useFoodExpenses } from '@/hooks/useFoodExpenses';
+import { toast } from 'sonner';
 
 interface FoodDetailModalProps {
   item: IndianMenuItem;
@@ -14,8 +17,10 @@ interface FoodDetailModalProps {
 
 export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps) {
   const { addFavorite, removeFavorite, isFavorite, restaurants } = useIndianFood();
+  const { addExpense } = useFoodExpenses();
   const [showNutrition, setShowNutrition] = useState(false);
   const [isLiked, setIsLiked] = useState(isFavorite(item.id));
+  const [showPayment, setShowPayment] = useState(false);
 
   // Find restaurants that serve this item
   const availableRestaurants = restaurants.filter(r => 
@@ -29,6 +34,22 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
       addFavorite(item);
     }
     setIsLiked(!isLiked);
+  };
+
+  const handlePaymentSuccess = (paymentDetails: { orderId: string; paymentId: string; amount: number }) => {
+    // Add to expenses after successful payment
+    addExpense({
+      amount: paymentDetails.amount,
+      foodName: item.nameEn,
+      category: 'delivery',
+      mealType: 'lunch',
+      restaurant: availableRestaurants[0]?.name,
+      cuisine: item.region,
+      notes: `Payment ID: ${paymentDetails.paymentId}`,
+      date: new Date(),
+    });
+    toast.success(`Order placed for ${item.nameEn}!`);
+    setShowPayment(false);
   };
 
   return (
@@ -271,7 +292,10 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
                 >
                   <Heart className={cn("w-6 h-6", isLiked && "fill-current")} />
                 </button>
-                <button className="flex-1 py-4 rounded-2xl gradient-bg text-white font-semibold flex items-center justify-center gap-2 shadow-glow">
+                <button 
+                  onClick={() => setShowPayment(true)}
+                  className="flex-1 py-4 rounded-2xl gradient-bg text-white font-semibold flex items-center justify-center gap-2 shadow-glow"
+                >
                   <ShoppingBag className="w-5 h-5" />
                   Order Now
                 </button>
@@ -280,6 +304,14 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
           </motion.div>
         </>
       )}
+
+      {/* Razorpay Checkout Modal */}
+      <RazorpayCheckout
+        item={item}
+        isOpen={showPayment}
+        onClose={() => setShowPayment(false)}
+        onSuccess={handlePaymentSuccess}
+      />
     </AnimatePresence>
   );
 }
