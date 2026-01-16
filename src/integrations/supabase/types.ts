@@ -14,7 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      food_orders: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          cuisine: string | null
+          food_id: string | null
+          food_name: string
+          id: string
+          image: string | null
+          meal_type: string
+          notes: string | null
+          order_date: string
+          restaurant: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          cuisine?: string | null
+          food_id?: string | null
+          food_name: string
+          id?: string
+          image?: string | null
+          meal_type: string
+          notes?: string | null
+          order_date?: string
+          restaurant?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          cuisine?: string | null
+          food_id?: string | null
+          food_name?: string
+          id?: string
+          image?: string | null
+          meal_type?: string
+          notes?: string | null
+          order_date?: string
+          restaurant?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_budgets: {
+        Row: {
+          created_at: string
+          daily_budget: number
+          id: string
+          monthly_budget: number
+          updated_at: string
+          user_id: string | null
+          weekly_budget: number
+        }
+        Insert: {
+          created_at?: string
+          daily_budget?: number
+          id?: string
+          monthly_budget?: number
+          updated_at?: string
+          user_id?: string | null
+          weekly_budget?: number
+        }
+        Update: {
+          created_at?: string
+          daily_budget?: number
+          id?: string
+          monthly_budget?: number
+          updated_at?: string
+          user_id?: string | null
+          weekly_budget?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
