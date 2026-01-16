@@ -4,16 +4,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const BUDGET_KEY = 'indian_food:budget';
-const DEVICE_ID_KEY = 'indian_food:device_id';
 
-// Generate or get device ID for anonymous users
-function getDeviceId(): string {
-  let deviceId = localStorage.getItem(DEVICE_ID_KEY);
-  if (!deviceId) {
-    deviceId = crypto.randomUUID();
-    localStorage.setItem(DEVICE_ID_KEY, deviceId);
-  }
-  return deviceId;
+// Helper to map database row to FoodExpense
+function mapOrderToExpense(order: Record<string, unknown>): FoodExpense {
+  return {
+    id: order.id as string,
+    foodId: (order.food_id as string) || undefined,
+    foodName: order.food_name as string,
+    restaurant: (order.restaurant as string) || undefined,
+    category: order.category as FoodExpense['category'],
+    amount: Number(order.amount),
+    date: new Date(order.order_date as string),
+    mealType: order.meal_type as FoodExpense['mealType'],
+    cuisine: (order.cuisine as string) || undefined,
+    notes: (order.notes as string) || undefined,
+    image: (order.image as string) || undefined,
+  };
 }
 
 export function useFoodExpenses() {
@@ -23,17 +29,6 @@ export function useFoodExpenses() {
     const saved = localStorage.getItem(BUDGET_KEY);
     return saved ? JSON.parse(saved) : { monthly: 10000, weekly: 2500, daily: 400 };
   });
-
-  // Fetch expenses from Supabase on mount
-  useEffect(() => {
-    fetchExpenses();
-    fetchBudget();
-  }, []);
-
-  // Persist budget to localStorage as backup
-  useEffect(() => {
-    localStorage.setItem(BUDGET_KEY, JSON.stringify(budget));
-  }, [budget]);
 
   const fetchExpenses = async () => {
     try {
@@ -45,20 +40,7 @@ export function useFoodExpenses() {
 
       if (error) throw error;
 
-      const mappedExpenses: FoodExpense[] = (data || []).map(order => ({
-        id: order.id,
-        foodId: order.food_id || undefined,
-        foodName: order.food_name,
-        restaurant: order.restaurant || undefined,
-        category: order.category as FoodExpense['category'],
-        amount: Number(order.amount),
-        date: new Date(order.order_date),
-        mealType: order.meal_type as FoodExpense['mealType'],
-        cuisine: order.cuisine || undefined,
-        notes: order.notes || undefined,
-        image: order.image || undefined,
-      }));
-
+      const mappedExpenses = (data || []).map(order => mapOrderToExpense(order as Record<string, unknown>));
       setExpenses(mappedExpenses);
     } catch (error) {
       console.error('Error fetching expenses:', error);
@@ -93,6 +75,68 @@ export function useFoodExpenses() {
       console.error('Error fetching budget:', error);
     }
   };
+
+  // Fetch expenses from Supabase on mount and setup realtime subscription
+  useEffect(() => {
+    fetchExpenses();
+    fetchBudget();
+
+    // Setup realtime subscription for food_orders
+    const channel = supabase
+      .channel('food_orders_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'food_orders',
+        },
+        (payload) => {
+          const newExpense = mapOrderToExpense(payload.new as Record<string, unknown>);
+          setExpenses(prev => {
+            // Avoid duplicates (in case we already added it optimistically)
+            if (prev.some(e => e.id === newExpense.id)) return prev;
+            return [newExpense, ...prev];
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'food_orders',
+        },
+        (payload) => {
+          const updatedExpense = mapOrderToExpense(payload.new as Record<string, unknown>);
+          setExpenses(prev =>
+            prev.map(e => e.id === updatedExpense.id ? updatedExpense : e)
+          );
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'food_orders',
+        },
+        (payload) => {
+          const deletedId = (payload.old as { id: string }).id;
+          setExpenses(prev => prev.filter(e => e.id !== deletedId));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Persist budget to localStorage as backup
+  useEffect(() => {
+    localStorage.setItem(BUDGET_KEY, JSON.stringify(budget));
+  }, [budget]);
 
   // Add expense
   const addExpense = useCallback(async (expense: Omit<FoodExpense, 'id'>) => {
@@ -336,7 +380,7 @@ export function useFoodExpenses() {
       budget: budget.monthly,
       remaining: budget.monthly - total,
       percentUsed: (total / budget.monthly) * 100,
-      byWeek: [], // Simplified for now
+      byWeek: [],
       topCuisines: Object.entries(cuisineMap)
         .map(([name, amount]) => ({ name, amount }))
         .sort((a, b) => b.amount - a.amount)
