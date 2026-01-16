@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Search, Wallet, User, MapPin } from 'lucide-react';
 import { IndianFoodProvider, useIndianFood } from '@/context/IndianFoodContext';
@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 type AppView = 'home' | 'discover' | 'expenses' | 'profile';
 
 function AppContent() {
-  const { userProfile, isOnboardingComplete, getRecommendations, getTrendingItems } = useIndianFood();
+  const { userProfile, isOnboardingComplete, getRecommendations, getTrendingItems, menuItems } = useIndianFood();
   const [showWelcome, setShowWelcome] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [activeView, setActiveView] = useState<AppView>('home');
@@ -31,6 +31,32 @@ function AppContent() {
   const trendingItems = getTrendingItems(8);
   const greeting = getGreeting();
   const mealContext = getMealContext();
+
+  // Filter items based on active filter
+  const filteredTrendingItems = useMemo(() => {
+    if (!activeFilter) return trendingItems;
+    
+    return menuItems.filter(item => {
+      switch (activeFilter) {
+        case 'quick':
+          return item.cookTime <= 30;
+        case 'healthy':
+          return item.calories < 400 || (item.nutrition && item.nutrition.fiber > 3);
+        case 'street':
+          return item.region === 'street_food';
+        case 'special':
+          return item.isBestseller;
+        case 'budget':
+          return item.price.max <= 150;
+        case 'homestyle':
+          return item.mealType.includes('dinner') || item.mealType.includes('lunch');
+        case 'spicy':
+          return item.spiceLevel === 'spicy' || item.spiceLevel === 'extra-spicy';
+        default:
+          return true;
+      }
+    }).slice(0, 12);
+  }, [activeFilter, menuItems, trendingItems]);
 
   useEffect(() => {
     if (isOnboardingComplete) {
@@ -115,10 +141,10 @@ function AppContent() {
               />
             </div>
 
-            {/* Trending section */}
+            {/* Trending section - filtered */}
             <TrendingSection
-              title="Trending Now"
-              items={trendingItems}
+              title={activeFilter ? `${activeFilter === 'quick' ? 'Under 30 min' : activeFilter === 'healthy' ? 'Healthy Picks' : activeFilter === 'street' ? 'Street Food' : activeFilter === 'special' ? "Today's Special" : activeFilter === 'budget' ? 'Budget Picks' : activeFilter === 'homestyle' ? 'Home-style' : activeFilter === 'spicy' ? 'Spicy' : 'Trending Now'}` : 'Trending Now'}
+              items={filteredTrendingItems}
               onViewItem={setSelectedItem}
             />
           </motion.div>
