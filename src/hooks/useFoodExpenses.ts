@@ -5,6 +5,12 @@ import { toast } from 'sonner';
 
 const BUDGET_KEY = 'indian_food:budget';
 
+// Get current user ID
+async function getCurrentUserId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id ?? null;
+}
+
 // Helper to map database row to FoodExpense
 function mapOrderToExpense(order: Record<string, unknown>): FoodExpense {
   return {
@@ -150,9 +156,16 @@ export function useFoodExpenses() {
     setExpenses(prev => [newExpense, ...prev]);
 
     try {
+      const userId = await getCurrentUserId();
+      if (!userId) {
+        toast.error('Please log in to save orders');
+        return newExpense;
+      }
+
       const { data, error } = await supabase
         .from('food_orders')
         .insert({
+          user_id: userId,
           food_id: expense.foodId || null,
           food_name: expense.foodName,
           restaurant: expense.restaurant || null,
@@ -398,10 +411,14 @@ export function useFoodExpenses() {
     setBudgetState(updatedBudget);
 
     try {
-      // Check if budget exists
+      const userId = await getCurrentUserId();
+      if (!userId) return;
+
+      // Check if budget exists for this user
       const { data: existing } = await supabase
         .from('user_budgets')
         .select('id')
+        .eq('user_id', userId)
         .limit(1)
         .maybeSingle();
 
@@ -418,6 +435,7 @@ export function useFoodExpenses() {
         await supabase
           .from('user_budgets')
           .insert({
+            user_id: userId,
             monthly_budget: updatedBudget.monthly,
             weekly_budget: updatedBudget.weekly,
             daily_budget: updatedBudget.daily,
