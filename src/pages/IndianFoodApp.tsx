@@ -12,6 +12,7 @@ import { SmartSearchBar } from '@/components/discover/SmartSearchBar';
 import { BudgetRecommendations } from '@/components/discover/BudgetRecommendations';
 import { CategoryBrowser } from '@/components/discover/CategoryBrowser';
 import { ExpenseTracker } from '@/components/expenses/ExpenseTracker';
+import { EditableProfileView } from '@/components/profile/EditableProfileView';
 import { IndianMenuItem } from '@/types/indian-food';
 import { getGreeting, getMealContext } from '@/data/indian-food-data';
 import { cn } from '@/lib/utils';
@@ -195,11 +196,7 @@ function AppContent() {
             className="px-4 pt-6"
           >
             <h1 className="text-2xl font-bold mb-4">Profile</h1>
-            <div className="bg-card rounded-2xl p-6 border border-border">
-              <p className="font-semibold text-lg">{userProfile?.name}</p>
-              <p className="text-muted-foreground">{userProfile?.location?.city}, {userProfile?.location?.state}</p>
-              <p className="text-sm mt-2">Budget: ₹{userProfile?.budgetMin} - ₹{userProfile?.budgetMax}</p>
-            </div>
+            <EditableProfileView />
           </motion.div>
         )}
       </AnimatePresence>
