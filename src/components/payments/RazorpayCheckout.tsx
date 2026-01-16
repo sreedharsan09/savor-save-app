@@ -142,10 +142,10 @@ export function RazorpayCheckout({ item, isOpen, onClose, onSuccess }: RazorpayC
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-md mx-auto bg-card rounded-3xl p-6 z-[60] shadow-2xl max-h-[90vh] overflow-y-auto"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-4 m-auto w-[calc(100%-2rem)] max-w-md h-fit max-h-[85vh] bg-card rounded-3xl p-6 z-[60] shadow-2xl overflow-y-auto"
           >
             <button
               onClick={onClose}
