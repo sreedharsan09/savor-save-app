@@ -246,7 +246,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+    image: 'https://images.unsplash.com/photo-1610192244261-3f33de3f55e4?w=400',
     region: 'street_food',
     mealType: ['snacks'],
     ingredients: [
@@ -296,7 +296,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400',
+    image: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
     region: 'street_food',
     mealType: ['snacks'],
     ingredients: [
@@ -347,7 +347,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400',
+    image: 'https://images.unsplash.com/photo-1626132647523-66f5bf380027?w=400',
     region: 'maharashtrian',
     mealType: ['breakfast', 'lunch'],
     ingredients: [
@@ -398,7 +398,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: true,
     isBestseller: false,
-    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+    image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400',
     region: 'gujarati',
     mealType: ['breakfast', 'snacks'],
     ingredients: [
@@ -500,7 +500,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: false,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+    image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=400',
     region: 'bengali',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -550,7 +550,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+    image: 'https://images.unsplash.com/photo-1574653853027-5382a3d23a15?w=400',
     region: 'rajasthani',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -676,7 +676,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: true,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1601050690117-94f5f7fa8bd7?w=400',
+    image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400',
     region: 'north_indian',
     mealType: ['desserts'],
     ingredients: [
@@ -702,7 +702,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1601050690117-94f5f7fa8bd7?w=400',
+    image: 'https://images.unsplash.com/photo-1645177628172-a94c1f96e6db?w=400',
     region: 'north_indian',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -752,7 +752,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400',
+    image: 'https://images.unsplash.com/photo-1567337710282-00832b415979?w=400',
     region: 'north_indian',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -802,7 +802,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: false,
-    image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400',
+    image: 'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?w=400',
     region: 'north_indian',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -827,7 +827,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: true,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+    image: 'https://images.unsplash.com/photo-1604152135912-04a022e23696?w=400',
     region: 'north_indian',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -849,7 +849,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: true,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+    image: 'https://images.unsplash.com/photo-1584736328868-fbc58a0c7080?w=400',
     region: 'north_indian',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -873,7 +873,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+    image: 'https://images.unsplash.com/photo-1601050690117-94f5f7fa8bd7?w=400',
     region: 'north_indian',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -921,7 +921,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: false,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400',
+    image: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
     region: 'north_indian',
     mealType: ['dinner', 'snacks'],
     ingredients: [
@@ -946,7 +946,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: false,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400',
+    image: 'https://images.unsplash.com/photo-1545247181-516773cae754?w=400',
     region: 'north_indian',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -1021,7 +1021,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400',
+    image: 'https://images.unsplash.com/photo-1630383249896-424e482df921?w=400',
     region: 'south_indian',
     mealType: ['breakfast'],
     ingredients: [
@@ -1046,7 +1046,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: true,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400',
+    image: 'https://images.unsplash.com/photo-1567337710282-00832b415979?w=400',
     region: 'south_indian',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -1072,7 +1072,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+    image: 'https://images.unsplash.com/photo-1625398407796-82650a8c135f?w=400',
     region: 'street_food',
     mealType: ['snacks'],
     ingredients: [
@@ -1097,7 +1097,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400',
     region: 'street_food',
     mealType: ['snacks'],
     ingredients: [
@@ -1122,7 +1122,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400',
+    image: 'https://images.unsplash.com/photo-1626132647523-66f5bf380027?w=400',
     region: 'street_food',
     mealType: ['dinner', 'snacks'],
     ingredients: [
@@ -1147,7 +1147,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+    image: 'https://images.unsplash.com/photo-1567337710282-00832b415979?w=400',
     region: 'street_food',
     mealType: ['snacks'],
     ingredients: [
@@ -1172,7 +1172,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+    image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400',
     region: 'rajasthani',
     mealType: ['breakfast', 'snacks'],
     ingredients: [
@@ -1247,7 +1247,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1525755662778-989d0524087e?w=400',
+    image: 'https://images.unsplash.com/photo-1548507200-c1b66d275ff4?w=400',
     region: 'indo_chinese',
     mealType: ['snacks'],
     ingredients: [
@@ -1297,7 +1297,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: true,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1587314168485-3236d6710814?w=400',
+    image: 'https://images.unsplash.com/photo-1571167530149-c1105da4c2c7?w=400',
     region: 'bengali',
     mealType: ['desserts'],
     ingredients: [
@@ -1322,7 +1322,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: false,
     isJainFriendly: false,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+    image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=400',
     region: 'coastal',
     mealType: ['lunch', 'dinner'],
     ingredients: [
@@ -1423,7 +1423,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: true,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400',
+    image: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400',
     region: 'north_indian',
     mealType: ['breakfast', 'snacks'],
     ingredients: [
@@ -1448,7 +1448,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: true,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400',
+    image: 'https://images.unsplash.com/photo-1527585743534-7113e3211270?w=400',
     region: 'north_indian',
     mealType: ['breakfast', 'snacks'],
     ingredients: [
@@ -1472,7 +1472,7 @@ export const indianMenuItems: IndianMenuItem[] = [
     isVeg: true,
     isJainFriendly: true,
     isBestseller: true,
-    image: 'https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400',
+    image: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400',
     region: 'south_indian',
     mealType: ['breakfast', 'snacks'],
     ingredients: [
