@@ -182,10 +182,6 @@ export function HeroRecommendation({ item, onViewDetails, onNext, whyRecommended
         </div>
       </motion.div>
 
-      {/* Swipe hint */}
-      <p className="text-center text-sm text-muted-foreground mt-4">
-        👈 Skip | ❤️ Save 👉 | ☝️ Details
-      </p>
     </div>
   );
 }
