@@ -8,13 +8,13 @@ interface QuickFiltersProps {
 }
 
 const filters = [
-  { id: 'quick', label: '30 मिनट में', labelEn: 'Under 30 min', icon: Clock, color: 'bg-blue-500' },
-  { id: 'healthy', label: 'हेल्दी', labelEn: 'Healthy', icon: Salad, color: 'bg-green-500' },
-  { id: 'street', label: 'स्ट्रीट फूड', labelEn: 'Street Food', icon: Flame, color: 'bg-orange-500' },
-  { id: 'special', label: 'आज की स्पेशल', labelEn: "Today's Special", icon: Sparkles, color: 'bg-purple-500' },
-  { id: 'budget', label: 'बजट में', labelEn: 'Budget Picks', icon: IndianRupee, color: 'bg-emerald-500' },
-  { id: 'homestyle', label: 'घर जैसा', labelEn: 'Home-style', icon: Home, color: 'bg-amber-500' },
-  { id: 'spicy', label: 'तीखा', labelEn: 'Spicy', icon: Zap, color: 'bg-red-500' },
+  { id: 'quick', label: 'Under 30 min', icon: Clock, color: 'bg-blue-500' },
+  { id: 'healthy', label: 'Healthy', icon: Salad, color: 'bg-green-500' },
+  { id: 'street', label: 'Street Food', icon: Flame, color: 'bg-orange-500' },
+  { id: 'special', label: "Today's Special", icon: Sparkles, color: 'bg-purple-500' },
+  { id: 'budget', label: 'Budget Picks', icon: IndianRupee, color: 'bg-emerald-500' },
+  { id: 'homestyle', label: 'Home-style', icon: Home, color: 'bg-amber-500' },
+  { id: 'spicy', label: 'Spicy', icon: Zap, color: 'bg-red-500' },
 ];
 
 export function QuickFilters({ activeFilter, onFilterChange }: QuickFiltersProps) {

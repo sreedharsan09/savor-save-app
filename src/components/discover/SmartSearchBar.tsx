@@ -15,26 +15,52 @@ export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearch
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
-  // Smart suggestions based on query
+  // Optimistic search - instant filtering with debounce feel
   const suggestions = useMemo(() => {
-    if (!query.trim()) return { items: [], restaurants: [], budgets: [], cuisines: [], locations: [] };
-
-    const q = query.toLowerCase();
+    const q = query.toLowerCase().trim();
     
-    // Food items matching
-    const matchingItems = menuItems.filter(item =>
-      item.nameEn.toLowerCase().includes(q) ||
-      item.description.toLowerCase().includes(q) ||
-      item.region.includes(q)
-    ).slice(0, 4);
+    if (!q) {
+      // Show popular items when empty
+      return { 
+        items: menuItems.filter(item => item.isBestseller).slice(0, 6), 
+        restaurants: restaurants.filter(r => r.trending).slice(0, 4), 
+        budgets: [], 
+        cuisines: REGIONAL_CUISINES.slice(0, 4), 
+        locations: [] 
+      };
+    }
+    
+    // Multi-field search with relevance scoring
+    const matchingItems = menuItems
+      .map(item => {
+        let score = 0;
+        const nameMatch = item.nameEn.toLowerCase().includes(q);
+        const descMatch = item.description.toLowerCase().includes(q);
+        const regionMatch = item.region.replace('_', ' ').toLowerCase().includes(q);
+        const ingredientMatch = item.ingredients.some(ing => ing.en.toLowerCase().includes(q));
+        
+        if (nameMatch) score += 10;
+        if (item.nameEn.toLowerCase().startsWith(q)) score += 5;
+        if (descMatch) score += 3;
+        if (regionMatch) score += 4;
+        if (ingredientMatch) score += 2;
+        if (item.isBestseller) score += 1;
+        
+        return { item, score };
+      })
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+      .map(({ item }) => item);
 
     // Restaurants matching
     const matchingRestaurants = restaurants.filter(r =>
       r.name.toLowerCase().includes(q) ||
-      r.location.toLowerCase().includes(q)
-    ).slice(0, 3);
+      r.location.toLowerCase().includes(q) ||
+      r.specialities.some(s => s.toLowerCase().includes(q))
+    ).slice(0, 4);
 
-    // Budget matching (e.g., "300", "500")
+    // Budget matching
     const budgetNum = parseInt(query);
     const matchingBudgets = !isNaN(budgetNum) 
       ? BUDGET_RANGES_INR.filter(b => budgetNum >= b.min && budgetNum <= b.max).slice(0, 2)
@@ -43,7 +69,7 @@ export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearch
     // Cuisine matching
     const matchingCuisines = REGIONAL_CUISINES.filter(c =>
       c.nameEn.toLowerCase().includes(q)
-    ).slice(0, 3);
+    ).slice(0, 4);
 
     // Location matching
     const matchingLocations = [...new Set(restaurants.map(r => r.location))]
@@ -65,7 +91,8 @@ export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearch
     suggestions.cuisines.length > 0 ||
     suggestions.locations.length > 0;
 
-  const recentSearches = ['Butter Chicken', 'Dosa', 'Under ₹200', 'Street Food'];
+  const trendingSearches = ['Butter Chicken', 'Dosa', 'Biryani', 'Street Food', 'Healthy'];
+  const popularCategories = ['North Indian', 'South Indian', 'Chinese', 'Desserts'];
 
   return (
     <div className="relative">
@@ -106,17 +133,32 @@ export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearch
             {!query && (
               <div className="p-4">
                 <p className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
-                  <Clock className="w-3 h-3" />
-                  Recent searches
+                  <TrendingUp className="w-3 h-3" />
+                  Trending searches
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {recentSearches.map((search, i) => (
+                  {trendingSearches.map((search, i) => (
                     <button
                       key={i}
                       onClick={() => setQuery(search)}
                       className="px-3 py-1.5 rounded-full bg-muted text-sm hover:bg-primary/10 hover:text-primary transition-all"
                     >
                       {search}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-4 mb-2 flex items-center gap-2">
+                  <Utensils className="w-3 h-3" />
+                  Popular categories
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {popularCategories.map((cat, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setQuery(cat)}
+                      className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm hover:bg-primary/20 transition-all"
+                    >
+                      {cat}
                     </button>
                   ))}
                 </div>
