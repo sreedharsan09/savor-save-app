@@ -59,6 +59,7 @@ export function CategoryBrowser({ onSelectItem }: CategoryBrowserProps) {
   const { menuItems } = useIndianFood();
   const [expandedCategory, setExpandedCategory] = useState<CategoryType | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [showAllItems, setShowAllItems] = useState(false);
 
   // Get filtered items based on selection
   const filteredItems = useMemo(() => {
@@ -97,10 +98,17 @@ export function CategoryBrowser({ onSelectItem }: CategoryBrowserProps) {
     if (expandedCategory === categoryId) {
       setExpandedCategory(null);
       setSelectedSubcategory(null);
+      setShowAllItems(false);
     } else {
       setExpandedCategory(categoryId);
       setSelectedSubcategory(null);
+      setShowAllItems(false);
     }
+  };
+
+  const handleSubcategorySelect = (subcategoryId: string) => {
+    setSelectedSubcategory(subcategoryId);
+    setShowAllItems(false);
   };
 
   const getSubcategories = () => {
@@ -156,7 +164,7 @@ export function CategoryBrowser({ onSelectItem }: CategoryBrowserProps) {
                     {getSubcategories().map((sub) => (
                       <button
                         key={sub.id}
-                        onClick={() => setSelectedSubcategory(sub.id)}
+                        onClick={() => handleSubcategorySelect(sub.id)}
                         className={cn(
                           "px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2",
                           selectedSubcategory === sub.id
@@ -180,7 +188,7 @@ export function CategoryBrowser({ onSelectItem }: CategoryBrowserProps) {
                       <p className="text-sm text-muted-foreground mb-2">
                         {filteredItems.length} items found
                       </p>
-                      {filteredItems.slice(0, 5).map((item) => (
+                      {(showAllItems ? filteredItems : filteredItems.slice(0, 5)).map((item) => (
                         <button
                           key={item.id}
                           onClick={() => onSelectItem(item)}
@@ -200,10 +208,21 @@ export function CategoryBrowser({ onSelectItem }: CategoryBrowserProps) {
                           <ChevronRight className="w-4 h-4 text-muted-foreground" />
                         </button>
                       ))}
-                      {filteredItems.length > 5 && (
-                        <p className="text-center text-sm text-primary font-medium pt-2">
-                          + {filteredItems.length - 5} more items
-                        </p>
+                      {filteredItems.length > 5 && !showAllItems && (
+                        <button 
+                          onClick={() => setShowAllItems(true)}
+                          className="w-full text-center text-sm text-primary font-medium pt-2 hover:underline"
+                        >
+                          + {filteredItems.length - 5} more item{filteredItems.length - 5 > 1 ? 's' : ''}
+                        </button>
+                      )}
+                      {showAllItems && filteredItems.length > 5 && (
+                        <button 
+                          onClick={() => setShowAllItems(false)}
+                          className="w-full text-center text-sm text-muted-foreground font-medium pt-2 hover:underline"
+                        >
+                          Show less
+                        </button>
                       )}
                     </motion.div>
                   )}
