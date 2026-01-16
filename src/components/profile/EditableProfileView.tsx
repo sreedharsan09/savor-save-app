@@ -14,9 +14,10 @@ import {
   Flame,
   Wallet,
   Target,
-  ChevronRight
+  LogOut
 } from 'lucide-react';
 import { useIndianFood } from '@/context/IndianFoodContext';
+import { useAuth } from '@/context/AuthContext';
 import { 
   DietaryType, 
   RegionalCuisine, 
@@ -43,9 +44,11 @@ const defaultAvatars = [
 
 export function EditableProfileView() {
   const { userProfile, updateProfile, favorites } = useIndianFood();
+  const { user, signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [editedProfile, setEditedProfile] = useState(userProfile);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync edited profile when user profile changes
@@ -542,7 +545,32 @@ export function EditableProfileView() {
         </div>
       </motion.div>
 
-      {/* Avatar Selection Modal */}
+      {/* Logout Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-card rounded-2xl p-5 border border-border"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">{user?.email}</p>
+            <p className="text-sm text-muted-foreground">Logged in account</p>
+          </div>
+          <button
+            onClick={async () => {
+              setIsLoggingOut(true);
+              await signOut();
+              toast.success('Logged out successfully');
+            }}
+            disabled={isLoggingOut}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+          >
+            <LogOut size={18} />
+            {isLoggingOut ? 'Logging out...' : 'Logout'}
+          </button>
+        </div>
+      </motion.div>
       <AnimatePresence>
         {showAvatarModal && (
           <motion.div
