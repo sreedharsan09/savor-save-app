@@ -1,51 +1,197 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { FoodExpense, DailyExpenseSummary, WeeklyExpenseSummary, MonthlyExpenseSummary, ExpenseBudget } from '@/types/expense';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-const STORAGE_KEY = 'indian_food:expenses';
 const BUDGET_KEY = 'indian_food:budget';
+const DEVICE_ID_KEY = 'indian_food:device_id';
+
+// Generate or get device ID for anonymous users
+function getDeviceId(): string {
+  let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem(DEVICE_ID_KEY, deviceId);
+  }
+  return deviceId;
+}
 
 export function useFoodExpenses() {
-  const [expenses, setExpenses] = useState<FoodExpense[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-
+  const [expenses, setExpenses] = useState<FoodExpense[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [budget, setBudgetState] = useState<ExpenseBudget>(() => {
     const saved = localStorage.getItem(BUDGET_KEY);
     return saved ? JSON.parse(saved) : { monthly: 10000, weekly: 2500, daily: 400 };
   });
 
-  // Persist to localStorage
+  // Fetch expenses from Supabase on mount
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
-  }, [expenses]);
+    fetchExpenses();
+    fetchBudget();
+  }, []);
 
+  // Persist budget to localStorage as backup
   useEffect(() => {
     localStorage.setItem(BUDGET_KEY, JSON.stringify(budget));
   }, [budget]);
 
+  const fetchExpenses = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('food_orders')
+        .select('*')
+        .order('order_date', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedExpenses: FoodExpense[] = (data || []).map(order => ({
+        id: order.id,
+        foodId: order.food_id || undefined,
+        foodName: order.food_name,
+        restaurant: order.restaurant || undefined,
+        category: order.category as FoodExpense['category'],
+        amount: Number(order.amount),
+        date: new Date(order.order_date),
+        mealType: order.meal_type as FoodExpense['mealType'],
+        cuisine: order.cuisine || undefined,
+        notes: order.notes || undefined,
+        image: order.image || undefined,
+      }));
+
+      setExpenses(mappedExpenses);
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+      // Fallback to localStorage
+      const saved = localStorage.getItem('indian_food:expenses');
+      if (saved) {
+        setExpenses(JSON.parse(saved));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchBudget = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_budgets')
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setBudgetState({
+          monthly: Number(data.monthly_budget),
+          weekly: Number(data.weekly_budget),
+          daily: Number(data.daily_budget),
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching budget:', error);
+    }
+  };
+
   // Add expense
-  const addExpense = useCallback((expense: Omit<FoodExpense, 'id'>) => {
+  const addExpense = useCallback(async (expense: Omit<FoodExpense, 'id'>) => {
+    const tempId = Date.now().toString();
     const newExpense: FoodExpense = {
       ...expense,
-      id: Date.now().toString(),
+      id: tempId,
     };
+
+    // Optimistic update
     setExpenses(prev => [newExpense, ...prev]);
-    return newExpense;
+
+    try {
+      const { data, error } = await supabase
+        .from('food_orders')
+        .insert({
+          food_id: expense.foodId || null,
+          food_name: expense.foodName,
+          restaurant: expense.restaurant || null,
+          category: expense.category,
+          amount: expense.amount,
+          order_date: expense.date instanceof Date ? expense.date.toISOString() : expense.date,
+          meal_type: expense.mealType,
+          cuisine: expense.cuisine || null,
+          notes: expense.notes || null,
+          image: expense.image || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update with real ID from database
+      setExpenses(prev =>
+        prev.map(e => e.id === tempId ? { ...e, id: data.id } : e)
+      );
+
+      toast.success('Order saved to cloud!');
+      return { ...newExpense, id: data.id };
+    } catch (error) {
+      console.error('Error adding expense:', error);
+      toast.error('Failed to sync order to cloud');
+      return newExpense;
+    }
   }, []);
 
   // Update expense
-  const updateExpense = useCallback((id: string, updates: Partial<FoodExpense>) => {
+  const updateExpense = useCallback(async (id: string, updates: Partial<FoodExpense>) => {
+    // Optimistic update
     setExpenses(prev =>
       prev.map(expense =>
         expense.id === id ? { ...expense, ...updates } : expense
       )
     );
+
+    try {
+      const updateData: Record<string, unknown> = {};
+      if (updates.foodId !== undefined) updateData.food_id = updates.foodId;
+      if (updates.foodName !== undefined) updateData.food_name = updates.foodName;
+      if (updates.restaurant !== undefined) updateData.restaurant = updates.restaurant;
+      if (updates.category !== undefined) updateData.category = updates.category;
+      if (updates.amount !== undefined) updateData.amount = updates.amount;
+      if (updates.date !== undefined) updateData.order_date = updates.date instanceof Date ? updates.date.toISOString() : updates.date;
+      if (updates.mealType !== undefined) updateData.meal_type = updates.mealType;
+      if (updates.cuisine !== undefined) updateData.cuisine = updates.cuisine;
+      if (updates.notes !== undefined) updateData.notes = updates.notes;
+      if (updates.image !== undefined) updateData.image = updates.image;
+
+      const { error } = await supabase
+        .from('food_orders')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating expense:', error);
+      toast.error('Failed to update order');
+    }
   }, []);
 
   // Delete expense
-  const deleteExpense = useCallback((id: string) => {
+  const deleteExpense = useCallback(async (id: string) => {
+    // Optimistic update
     setExpenses(prev => prev.filter(expense => expense.id !== id));
+
+    try {
+      const { error } = await supabase
+        .from('food_orders')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      toast.success('Order deleted');
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      toast.error('Failed to delete order');
+      // Refetch to restore state
+      fetchExpenses();
+    }
   }, []);
 
   // Get today's expenses
@@ -203,9 +349,40 @@ export function useFoodExpenses() {
   }, [getMonthExpenses, budget]);
 
   // Set budget
-  const setBudget = useCallback((newBudget: Partial<ExpenseBudget>) => {
-    setBudgetState(prev => ({ ...prev, ...newBudget }));
-  }, []);
+  const setBudget = useCallback(async (newBudget: Partial<ExpenseBudget>) => {
+    const updatedBudget = { ...budget, ...newBudget };
+    setBudgetState(updatedBudget);
+
+    try {
+      // Check if budget exists
+      const { data: existing } = await supabase
+        .from('user_budgets')
+        .select('id')
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from('user_budgets')
+          .update({
+            monthly_budget: updatedBudget.monthly,
+            weekly_budget: updatedBudget.weekly,
+            daily_budget: updatedBudget.daily,
+          })
+          .eq('id', existing.id);
+      } else {
+        await supabase
+          .from('user_budgets')
+          .insert({
+            monthly_budget: updatedBudget.monthly,
+            weekly_budget: updatedBudget.weekly,
+            daily_budget: updatedBudget.daily,
+          });
+      }
+    } catch (error) {
+      console.error('Error saving budget:', error);
+    }
+  }, [budget]);
 
   // Budget status
   const budgetStatus = useMemo(() => {
@@ -238,6 +415,7 @@ export function useFoodExpenses() {
   return {
     expenses,
     budget,
+    isLoading,
     addExpense,
     updateExpense,
     deleteExpense,
@@ -256,5 +434,6 @@ export function useFoodExpenses() {
     getMonthlySummary,
     setBudget,
     budgetStatus,
+    refetch: fetchExpenses,
   };
 }
