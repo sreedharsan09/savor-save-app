@@ -130,29 +130,32 @@ export function IndianFoodProvider({ children }: { children: ReactNode }) {
   });
 
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+  const [isFavoritesLoaded, setIsFavoritesLoaded] = useState(false);
+  const [isMealPlanLoaded, setIsMealPlanLoaded] = useState(false);
 
-  // Load profile from database when user is authenticated
+  // Load profile, favorites, and meal plans from database when user is authenticated
   useEffect(() => {
-    async function loadProfileFromDB() {
+    async function loadDataFromDB() {
       if (!user) {
         setIsProfileLoaded(false);
+        setIsFavoritesLoaded(false);
+        setIsMealPlanLoaded(false);
         return;
       }
 
       try {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
+        // Load profile, favorites, and meal plans in parallel
+        const [profileResult, favoritesResult, mealPlansResult] = await Promise.all([
+          supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
+          supabase.from('favorites').select('*').eq('user_id', user.id),
+          supabase.from('meal_plans').select('*').eq('user_id', user.id),
+        ]);
 
-        if (error) {
-          console.error('Error loading profile:', error);
-          return;
-        }
-
-        if (profile) {
-          // Map database profile to IndianUserProfile
+        // Handle profile
+        if (profileResult.error) {
+          console.error('Error loading profile:', profileResult.error);
+        } else if (profileResult.data) {
+          const profile = profileResult.data;
           const dbProfile: IndianUserProfile = {
             name: profile.name || user.email?.split('@')[0] || 'User',
             email: profile.email || user.email,
@@ -174,13 +177,61 @@ export function IndianFoodProvider({ children }: { children: ReactNode }) {
           setUserProfileState(dbProfile);
         }
         setIsProfileLoaded(true);
+
+        // Handle favorites
+        if (favoritesResult.error) {
+          console.error('Error loading favorites:', favoritesResult.error);
+        } else if (favoritesResult.data && favoritesResult.data.length > 0) {
+          const dbFavorites: FavoriteItem[] = favoritesResult.data.map(fav => ({
+            id: fav.item_id,
+            nameEn: fav.name_en,
+            nameHi: fav.name_hi || '',
+            cuisine: fav.cuisine as RegionalCuisine,
+            regional: fav.regional || '',
+            image: fav.image || '',
+            price: { min: Number(fav.price_min) || 0, max: Number(fav.price_max) || 0 },
+            rating: Number(fav.rating) || 4.5,
+            spiceLevel: (fav.spice_level as SpiceLevel) || 'medium',
+            dietary: (fav.dietary as DietaryType[]) || [],
+            savedAt: new Date(fav.saved_at),
+          }));
+          setFavorites(dbFavorites);
+        }
+        setIsFavoritesLoaded(true);
+
+        // Handle meal plans
+        if (mealPlansResult.error) {
+          console.error('Error loading meal plans:', mealPlansResult.error);
+        } else if (mealPlansResult.data && mealPlansResult.data.length > 0) {
+          const dbMealPlan: WeeklyMealPlan = {};
+          mealPlansResult.data.forEach(mp => {
+            const dateStr = mp.plan_date;
+            if (!dbMealPlan[dateStr]) {
+              dbMealPlan[dateStr] = {};
+            }
+            dbMealPlan[dateStr][mp.meal_type as keyof DailyMealPlan] = {
+              id: mp.item_id,
+              nameEn: mp.name_en,
+              nameHi: mp.name_hi || '',
+              cuisine: mp.cuisine as RegionalCuisine,
+              price: Number(mp.price) || 0,
+              calories: Number(mp.calories) || 0,
+              cookTime: mp.cook_time || undefined,
+              image: mp.image || undefined,
+            };
+          });
+          setMealPlan(dbMealPlan);
+        }
+        setIsMealPlanLoaded(true);
       } catch (err) {
-        console.error('Error loading profile:', err);
+        console.error('Error loading data:', err);
         setIsProfileLoaded(true);
+        setIsFavoritesLoaded(true);
+        setIsMealPlanLoaded(true);
       }
     }
 
-    loadProfileFromDB();
+    loadDataFromDB();
   }, [user]);
 
   // Sync profile to database when it changes
@@ -264,6 +315,79 @@ export function IndianFoodProvider({ children }: { children: ReactNode }) {
     setUserProfileState(prev => prev ? { ...prev, onboardingComplete: true } : null);
   }, []);
 
+  // Sync favorite to database
+  const syncFavoriteToDB = useCallback(async (favorite: FavoriteItem, action: 'add' | 'remove') => {
+    if (!user) return;
+
+    try {
+      if (action === 'add') {
+        const { error } = await supabase.from('favorites').upsert({
+          user_id: user.id,
+          item_id: favorite.id,
+          name_en: favorite.nameEn,
+          name_hi: favorite.nameHi,
+          cuisine: favorite.cuisine,
+          regional: favorite.regional,
+          image: favorite.image,
+          price_min: favorite.price.min,
+          price_max: favorite.price.max,
+          rating: favorite.rating,
+          spice_level: favorite.spiceLevel,
+          dietary: favorite.dietary,
+          saved_at: favorite.savedAt.toISOString(),
+        }, { onConflict: 'user_id,item_id' });
+
+        if (error) console.error('Error syncing favorite:', error);
+      } else {
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('item_id', favorite.id);
+
+        if (error) console.error('Error removing favorite:', error);
+      }
+    } catch (err) {
+      console.error('Error syncing favorite:', err);
+    }
+  }, [user]);
+
+  // Sync meal plan entry to database
+  const syncMealPlanToDB = useCallback(async (date: string, mealType: string, entry: MealPlanEntry | null) => {
+    if (!user) return;
+
+    try {
+      if (entry) {
+        const { error } = await supabase.from('meal_plans').upsert({
+          user_id: user.id,
+          plan_date: date,
+          meal_type: mealType,
+          item_id: entry.id,
+          name_en: entry.nameEn,
+          name_hi: entry.nameHi,
+          cuisine: entry.cuisine,
+          price: entry.price,
+          calories: entry.calories,
+          cook_time: entry.cookTime,
+          image: entry.image,
+        }, { onConflict: 'user_id,plan_date,meal_type' });
+
+        if (error) console.error('Error syncing meal plan:', error);
+      } else {
+        const { error } = await supabase
+          .from('meal_plans')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('plan_date', date)
+          .eq('meal_type', mealType);
+
+        if (error) console.error('Error removing meal plan entry:', error);
+      }
+    } catch (err) {
+      console.error('Error syncing meal plan:', err);
+    }
+  }, [user]);
+
   // Favorites functions
   const addFavorite = useCallback((item: IndianMenuItem) => {
     const favoriteItem: FavoriteItem = {
@@ -280,11 +404,22 @@ export function IndianFoodProvider({ children }: { children: ReactNode }) {
       savedAt: new Date(),
     };
     setFavorites(prev => [...prev, favoriteItem]);
-  }, []);
+    
+    // Sync to database if user is authenticated
+    if (user && isFavoritesLoaded) {
+      syncFavoriteToDB(favoriteItem, 'add');
+    }
+  }, [user, isFavoritesLoaded, syncFavoriteToDB]);
 
   const removeFavorite = useCallback((itemId: string) => {
+    const favorite = favorites.find(f => f.id === itemId);
     setFavorites(prev => prev.filter(f => f.id !== itemId));
-  }, []);
+    
+    // Sync to database if user is authenticated
+    if (favorite && user && isFavoritesLoaded) {
+      syncFavoriteToDB(favorite, 'remove');
+    }
+  }, [favorites, user, isFavoritesLoaded, syncFavoriteToDB]);
 
   const isFavorite = useCallback((itemId: string) => {
     return favorites.some(f => f.id === itemId);
@@ -299,7 +434,12 @@ export function IndianFoodProvider({ children }: { children: ReactNode }) {
         [mealType]: entry,
       },
     }));
-  }, []);
+    
+    // Sync to database if user is authenticated
+    if (user && isMealPlanLoaded) {
+      syncMealPlanToDB(date, mealType, entry);
+    }
+  }, [user, isMealPlanLoaded, syncMealPlanToDB]);
 
   const removeFromMealPlan = useCallback((date: string, mealType: keyof DailyMealPlan) => {
     setMealPlan(prev => {
@@ -309,9 +449,14 @@ export function IndianFoodProvider({ children }: { children: ReactNode }) {
       }
       return updated;
     });
-  }, []);
+    
+    // Sync to database if user is authenticated
+    if (user && isMealPlanLoaded) {
+      syncMealPlanToDB(date, mealType, null);
+    }
+  }, [user, isMealPlanLoaded, syncMealPlanToDB]);
 
-  const autoGenerateMealPlan = useCallback(() => {
+  const autoGenerateMealPlan = useCallback(async () => {
     const today = new Date();
     const newPlan: WeeklyMealPlan = {};
     
@@ -350,7 +495,20 @@ export function IndianFoodProvider({ children }: { children: ReactNode }) {
     }
     
     setMealPlan(newPlan);
-  }, []);
+
+    // Sync all entries to database if user is authenticated
+    if (user && isMealPlanLoaded) {
+      const mealTypes: (keyof DailyMealPlan)[] = ['breakfast', 'lunch', 'snacks', 'dinner'];
+      for (const [dateStr, dayPlan] of Object.entries(newPlan)) {
+        for (const mealType of mealTypes) {
+          const entry = dayPlan[mealType];
+          if (entry) {
+            syncMealPlanToDB(dateStr, mealType, entry);
+          }
+        }
+      }
+    }
+  }, [user, isMealPlanLoaded, syncMealPlanToDB]);
 
   // Rating functions
   const rateFood = useCallback((itemId: string, rating: FoodRating) => {

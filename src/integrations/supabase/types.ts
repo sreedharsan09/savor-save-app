@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      favorites: {
+        Row: {
+          created_at: string
+          cuisine: string | null
+          dietary: string[] | null
+          id: string
+          image: string | null
+          item_id: string
+          name_en: string
+          name_hi: string | null
+          price_max: number | null
+          price_min: number | null
+          rating: number | null
+          regional: string | null
+          saved_at: string
+          spice_level: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cuisine?: string | null
+          dietary?: string[] | null
+          id?: string
+          image?: string | null
+          item_id: string
+          name_en: string
+          name_hi?: string | null
+          price_max?: number | null
+          price_min?: number | null
+          rating?: number | null
+          regional?: string | null
+          saved_at?: string
+          spice_level?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cuisine?: string | null
+          dietary?: string[] | null
+          id?: string
+          image?: string | null
+          item_id?: string
+          name_en?: string
+          name_hi?: string | null
+          price_max?: number | null
+          price_min?: number | null
+          rating?: number | null
+          regional?: string | null
+          saved_at?: string
+          spice_level?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       food_orders: {
         Row: {
           amount: number
@@ -62,6 +116,57 @@ export type Database = {
           restaurant?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      meal_plans: {
+        Row: {
+          calories: number | null
+          cook_time: number | null
+          created_at: string
+          cuisine: string | null
+          id: string
+          image: string | null
+          item_id: string
+          meal_type: string
+          name_en: string
+          name_hi: string | null
+          plan_date: string
+          price: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          cook_time?: number | null
+          created_at?: string
+          cuisine?: string | null
+          id?: string
+          image?: string | null
+          item_id: string
+          meal_type: string
+          name_en: string
+          name_hi?: string | null
+          plan_date: string
+          price?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          cook_time?: number | null
+          created_at?: string
+          cuisine?: string | null
+          id?: string
+          image?: string | null
+          item_id?: string
+          meal_type?: string
+          name_en?: string
+          name_hi?: string | null
+          plan_date?: string
+          price?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
