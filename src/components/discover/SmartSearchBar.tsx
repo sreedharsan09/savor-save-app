@@ -1,0 +1,255 @@
+import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Mic, X, MapPin, Clock, IndianRupee, Utensils, TrendingUp } from 'lucide-react';
+import { IndianMenuItem, IndianRestaurant, BUDGET_RANGES_INR, REGIONAL_CUISINES } from '@/types/indian-food';
+import { useIndianFood } from '@/context/IndianFoodContext';
+import { cn } from '@/lib/utils';
+
+interface SmartSearchBarProps {
+  onSelectItem: (item: IndianMenuItem) => void;
+  onSelectRestaurant: (restaurant: IndianRestaurant) => void;
+}
+
+export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearchBarProps) {
+  const { menuItems, restaurants, language } = useIndianFood();
+  const [query, setQuery] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Smart suggestions based on query
+  const suggestions = useMemo(() => {
+    if (!query.trim()) return { items: [], restaurants: [], budgets: [], cuisines: [], locations: [] };
+
+    const q = query.toLowerCase();
+    
+    // Food items matching
+    const matchingItems = menuItems.filter(item =>
+      item.nameEn.toLowerCase().includes(q) ||
+      item.nameHi.includes(query) ||
+      item.description.toLowerCase().includes(q) ||
+      item.region.includes(q)
+    ).slice(0, 4);
+
+    // Restaurants matching
+    const matchingRestaurants = restaurants.filter(r =>
+      r.name.toLowerCase().includes(q) ||
+      r.location.toLowerCase().includes(q)
+    ).slice(0, 3);
+
+    // Budget matching (e.g., "300", "500")
+    const budgetNum = parseInt(query);
+    const matchingBudgets = !isNaN(budgetNum) 
+      ? BUDGET_RANGES_INR.filter(b => budgetNum >= b.min && budgetNum <= b.max).slice(0, 2)
+      : [];
+
+    // Cuisine matching
+    const matchingCuisines = REGIONAL_CUISINES.filter(c =>
+      c.nameEn.toLowerCase().includes(q) ||
+      c.nameHi.includes(query)
+    ).slice(0, 3);
+
+    // Location matching
+    const matchingLocations = [...new Set(restaurants.map(r => r.location))]
+      .filter(loc => loc.toLowerCase().includes(q))
+      .slice(0, 3);
+
+    return {
+      items: matchingItems,
+      restaurants: matchingRestaurants,
+      budgets: matchingBudgets,
+      cuisines: matchingCuisines,
+      locations: matchingLocations,
+    };
+  }, [query, menuItems, restaurants]);
+
+  const hasResults = suggestions.items.length > 0 || 
+    suggestions.restaurants.length > 0 || 
+    suggestions.budgets.length > 0 ||
+    suggestions.cuisines.length > 0 ||
+    suggestions.locations.length > 0;
+
+  const recentSearches = ['Butter Chicken', 'Dosa', 'Under ₹200', 'Street Food'];
+
+  return (
+    <div className="relative">
+      {/* Search input */}
+      <div className={cn(
+        "relative flex items-center gap-3 px-4 py-3 rounded-2xl border-2 bg-card transition-all",
+        isFocused ? "border-primary shadow-lg" : "border-border"
+      )}>
+        <Search className="w-5 h-5 text-muted-foreground shrink-0" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+          placeholder={language === 'hindi' ? 'क्या खाना है? खोजें...' : 'Craving something? Search...'}
+          className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
+        />
+        {query && (
+          <button onClick={() => setQuery('')} className="text-muted-foreground hover:text-foreground">
+            <X className="w-5 h-5" />
+          </button>
+        )}
+        <button className="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all">
+          <Mic className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Suggestions dropdown */}
+      <AnimatePresence>
+        {isFocused && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50 max-h-[60vh] overflow-y-auto"
+          >
+            {!query && (
+              <div className="p-4">
+                <p className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
+                  <Clock className="w-3 h-3" />
+                  Recent searches
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {recentSearches.map((search, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setQuery(search)}
+                      className="px-3 py-1.5 rounded-full bg-muted text-sm hover:bg-primary/10 hover:text-primary transition-all"
+                    >
+                      {search}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {hasResults && (
+              <div className="divide-y divide-border">
+                {/* Food items */}
+                {suggestions.items.length > 0 && (
+                  <div className="p-3">
+                    <p className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
+                      <Utensils className="w-3 h-3" />
+                      Food Items
+                    </p>
+                    {suggestions.items.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          onSelectItem(item);
+                          setQuery('');
+                        }}
+                        className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-muted transition-all text-left"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.nameEn}
+                          className="w-12 h-12 rounded-xl object-cover"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">
+                            {language === 'hindi' ? item.nameHi : item.nameEn}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            ₹{item.price.min} - {item.price.max} • {item.region.replace('_', ' ')}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Restaurants */}
+                {suggestions.restaurants.length > 0 && (
+                  <div className="p-3">
+                    <p className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
+                      <MapPin className="w-3 h-3" />
+                      Restaurants
+                    </p>
+                    {suggestions.restaurants.map((restaurant) => (
+                      <button
+                        key={restaurant.id}
+                        onClick={() => {
+                          onSelectRestaurant(restaurant);
+                          setQuery('');
+                        }}
+                        className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-muted transition-all text-left"
+                      >
+                        <img
+                          src={restaurant.image}
+                          alt={restaurant.name}
+                          className="w-12 h-12 rounded-xl object-cover"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{restaurant.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {restaurant.location} • ⭐ {restaurant.rating}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Budget ranges */}
+                {suggestions.budgets.length > 0 && (
+                  <div className="p-3">
+                    <p className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
+                      <IndianRupee className="w-3 h-3" />
+                      Budget Range
+                    </p>
+                    {suggestions.budgets.map((budget) => (
+                      <button
+                        key={budget.id}
+                        className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-muted transition-all text-left"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <IndianRupee className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{budget.label}</p>
+                          <p className="text-xs text-muted-foreground">{budget.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Cuisines */}
+                {suggestions.cuisines.length > 0 && (
+                  <div className="p-3">
+                    <p className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
+                      <TrendingUp className="w-3 h-3" />
+                      Cuisines
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestions.cuisines.map((cuisine) => (
+                        <button
+                          key={cuisine.id}
+                          className="px-4 py-2 rounded-full bg-muted hover:bg-primary/10 hover:text-primary transition-all flex items-center gap-2"
+                        >
+                          <span>{cuisine.icon}</span>
+                          <span className="text-sm font-medium">{cuisine.nameEn}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {query && !hasResults && (
+              <div className="p-8 text-center">
+                <p className="text-4xl mb-2">🔍</p>
+                <p className="text-muted-foreground">No results for "{query}"</p>
+                <p className="text-sm text-muted-foreground">Try searching for a dish, restaurant, or budget</p>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
