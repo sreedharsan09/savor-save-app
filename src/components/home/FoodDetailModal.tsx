@@ -23,9 +23,11 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
   const [showPayment, setShowPayment] = useState(false);
 
   // Find restaurants that serve this item
-  const availableRestaurants = restaurants.filter(r => 
+  const allMatchingRestaurants = restaurants.filter(r => 
     r.menuItems.some(mi => mi.id === item.id)
-  ).slice(0, 3);
+  );
+  const availableRestaurants = allMatchingRestaurants.slice(0, 3);
+  const remainingCount = allMatchingRestaurants.length - 3;
 
   const toggleFavorite = () => {
     if (isLiked) {
@@ -274,6 +276,13 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
                           </div>
                         </div>
                       ))}
+                      {remainingCount > 0 && (
+                        <div className="p-4 rounded-xl bg-muted/50 border border-border flex items-center justify-center">
+                          <span className="text-sm text-muted-foreground">
+                            +{remainingCount} more restaurant{remainingCount > 1 ? 's' : ''} available
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

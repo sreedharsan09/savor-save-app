@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Mic, X, MapPin, Clock, IndianRupee, Utensils, TrendingUp } from 'lucide-react';
+import { Search, Mic, MicOff, X, MapPin, Clock, IndianRupee, Utensils, TrendingUp, Loader2 } from 'lucide-react';
 import { IndianMenuItem, IndianRestaurant, BUDGET_RANGES_INR, REGIONAL_CUISINES } from '@/types/indian-food';
 import { useIndianFood } from '@/context/IndianFoodContext';
+import { useVoiceSearch } from '@/hooks/useVoiceSearch';
 import { cn } from '@/lib/utils';
 
 interface SmartSearchBarProps {
@@ -14,7 +15,11 @@ export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearch
   const { menuItems, restaurants } = useIndianFood();
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
-
+  
+  const { isListening, isProcessing, startListening, stopListening } = useVoiceSearch((text) => {
+    setQuery(text);
+    setIsFocused(true);
+  });
   // Optimistic search - instant filtering with debounce feel
   const suggestions = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -116,8 +121,24 @@ export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearch
             <X className="w-5 h-5" />
           </button>
         )}
-        <button className="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all">
-          <Mic className="w-4 h-4" />
+        <button 
+          onClick={isListening ? stopListening : startListening}
+          disabled={isProcessing}
+          className={cn(
+            "p-2 rounded-xl transition-all",
+            isListening 
+              ? "bg-red-500 text-white animate-pulse" 
+              : "bg-primary/10 text-primary hover:bg-primary/20",
+            isProcessing && "opacity-50 cursor-not-allowed"
+          )}
+        >
+          {isProcessing ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : isListening ? (
+            <MicOff className="w-4 h-4" />
+          ) : (
+            <Mic className="w-4 h-4" />
+          )}
         </button>
       </div>
 
