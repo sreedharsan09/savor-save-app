@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Search, Calendar, User, MapPin } from 'lucide-react';
+import { Home, Search, Wallet, User, MapPin } from 'lucide-react';
 import { IndianFoodProvider, useIndianFood } from '@/context/IndianFoodContext';
 import { WelcomeScreen } from '@/components/onboarding/WelcomeScreen';
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
@@ -11,14 +11,15 @@ import { FoodDetailModal } from '@/components/home/FoodDetailModal';
 import { SmartSearchBar } from '@/components/discover/SmartSearchBar';
 import { BudgetRecommendations } from '@/components/discover/BudgetRecommendations';
 import { CategoryBrowser } from '@/components/discover/CategoryBrowser';
+import { ExpenseTracker } from '@/components/expenses/ExpenseTracker';
 import { IndianMenuItem } from '@/types/indian-food';
 import { getGreeting, getMealContext } from '@/data/indian-food-data';
 import { cn } from '@/lib/utils';
 
-type AppView = 'home' | 'discover' | 'plan' | 'profile';
+type AppView = 'home' | 'discover' | 'expenses' | 'profile';
 
 function AppContent() {
-  const { userProfile, isOnboardingComplete, getRecommendations, getTrendingItems, language } = useIndianFood();
+  const { userProfile, isOnboardingComplete, getRecommendations, getTrendingItems } = useIndianFood();
   const [showWelcome, setShowWelcome] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [activeView, setActiveView] = useState<AppView>('home');
@@ -64,10 +65,10 @@ function AppContent() {
   }
 
   const navItems = [
-    { id: 'home' as AppView, label: 'Home', labelHi: 'घर', icon: Home },
-    { id: 'discover' as AppView, label: 'Discover', labelHi: 'खोजें', icon: Search },
-    { id: 'plan' as AppView, label: 'Plan', labelHi: 'प्लान', icon: Calendar },
-    { id: 'profile' as AppView, label: 'Profile', labelHi: 'प्रोफ़ाइल', icon: User },
+    { id: 'home' as AppView, label: 'Home', icon: Home },
+    { id: 'discover' as AppView, label: 'Discover', icon: Search },
+    { id: 'expenses' as AppView, label: 'Expenses', icon: Wallet },
+    { id: 'profile' as AppView, label: 'Profile', icon: User },
   ];
 
   return (
@@ -88,11 +89,11 @@ function AppContent() {
                 <h1 className="text-2xl font-bold">
                   {greeting.emoji} {greeting.en}, {userProfile?.name?.split(' ')[0] || 'Friend'}!
                 </h1>
-                <p className="text-muted-foreground">{mealContext.hi}</p>
+                <p className="text-muted-foreground">{mealContext.en}</p>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card px-3 py-1.5 rounded-full border border-border">
                 <MapPin className="w-4 h-4" />
-                <span>{userProfile?.location?.city || 'Lonavla'}</span>
+                <span>{userProfile?.location?.city || 'Your City'}</span>
               </div>
             </div>
 
@@ -102,7 +103,7 @@ function AppContent() {
                 item={recommendations[recommendationIndex]}
                 onViewDetails={setSelectedItem}
                 onNext={handleNextRecommendation}
-                whyRecommended={`Popular in ${userProfile?.location?.state || 'Maharashtra'}`}
+                whyRecommended={`Popular in ${userProfile?.location?.state || 'your area'}`}
               />
             )}
 
@@ -117,7 +118,6 @@ function AppContent() {
             {/* Trending section */}
             <TrendingSection
               title="Trending Now"
-              titleHi="अभी ट्रेंडिंग"
               items={trendingItems}
               onViewItem={setSelectedItem}
             />
@@ -132,7 +132,7 @@ function AppContent() {
             exit={{ opacity: 0 }}
             className="px-4 pt-6"
           >
-            <h1 className="text-2xl font-bold mb-4">Discover / खोजें</h1>
+            <h1 className="text-2xl font-bold mb-4">Discover</h1>
             
             <SmartSearchBar
               onSelectItem={setSelectedItem}
@@ -148,16 +148,15 @@ function AppContent() {
           </motion.div>
         )}
 
-        {activeView === 'plan' && (
+        {activeView === 'expenses' && (
           <motion.div
-            key="plan"
+            key="expenses"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="px-4 pt-6 text-center"
+            className="px-4 pt-6"
           >
-            <h1 className="text-2xl font-bold mb-4">Meal Planner / भोजन योजना</h1>
-            <p className="text-muted-foreground">Coming soon! 🍛</p>
+            <ExpenseTracker />
           </motion.div>
         )}
 
@@ -169,7 +168,7 @@ function AppContent() {
             exit={{ opacity: 0 }}
             className="px-4 pt-6"
           >
-            <h1 className="text-2xl font-bold mb-4">Profile / प्रोफ़ाइल</h1>
+            <h1 className="text-2xl font-bold mb-4">Profile</h1>
             <div className="bg-card rounded-2xl p-6 border border-border">
               <p className="font-semibold text-lg">{userProfile?.name}</p>
               <p className="text-muted-foreground">{userProfile?.location?.city}, {userProfile?.location?.state}</p>

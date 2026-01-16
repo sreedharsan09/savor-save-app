@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { IndianRupee, Sparkles, MapPin, Star, Clock, ChevronRight, Flame } from 'lucide-react';
 import { IndianMenuItem, BUDGET_RANGES_INR } from '@/types/indian-food';
 import { useIndianFood } from '@/context/IndianFoodContext';
-import { formatPrice, getSpiceDisplay } from '@/data/indian-food-data';
+import { getSpiceDisplay } from '@/data/indian-food-data';
 import { cn } from '@/lib/utils';
 
 interface BudgetRecommendationsProps {
@@ -11,7 +11,7 @@ interface BudgetRecommendationsProps {
 }
 
 export function BudgetRecommendations({ onViewItem }: BudgetRecommendationsProps) {
-  const { menuItems, restaurants, language } = useIndianFood();
+  const { menuItems, restaurants } = useIndianFood();
   const [budget, setBudget] = useState<number | null>(null);
   const [customBudget, setCustomBudget] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -71,7 +71,7 @@ export function BudgetRecommendations({ onViewItem }: BudgetRecommendationsProps
           >
             <div className="mb-8">
               <h2 className="text-2xl font-bold mb-2">What's Your Budget?</h2>
-              <p className="text-muted-foreground">आपका बजट क्या है?</p>
+              <p className="text-muted-foreground">Find the best food within your budget</p>
             </div>
 
             {/* Custom budget input */}
@@ -147,7 +147,7 @@ export function BudgetRecommendations({ onViewItem }: BudgetRecommendationsProps
             {/* Recommended items grid */}
             {recommendations.length > 0 && (
               <div className="mb-8">
-                <h3 className="font-semibold mb-4">Recommended for you / आपके लिए सुझाव</h3>
+                <h3 className="font-semibold mb-4">Recommended for you</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {recommendations.map((item, index) => (
                     <motion.div
@@ -185,7 +185,7 @@ export function BudgetRecommendations({ onViewItem }: BudgetRecommendationsProps
 
                       <div className="p-3">
                         <h4 className="font-semibold text-sm line-clamp-1 mb-1">
-                          {language === 'hindi' ? item.nameHi : item.nameEn}
+                          {item.nameEn}
                         </h4>
                         <p className="text-xs text-muted-foreground capitalize mb-2">
                           {item.region.replace('_', ' ')}

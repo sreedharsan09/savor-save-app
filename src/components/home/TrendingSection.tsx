@@ -1,27 +1,21 @@
 import { motion } from 'framer-motion';
-import { TrendingUp, Star, Clock, IndianRupee } from 'lucide-react';
+import { TrendingUp, Clock, IndianRupee } from 'lucide-react';
 import { IndianMenuItem } from '@/types/indian-food';
-import { formatPrice, getSpiceDisplay } from '@/data/indian-food-data';
+import { getSpiceDisplay } from '@/data/indian-food-data';
 import { cn } from '@/lib/utils';
-import { useIndianFood } from '@/context/IndianFoodContext';
 
 interface TrendingSectionProps {
   title: string;
-  titleHi: string;
   items: IndianMenuItem[];
   onViewItem: (item: IndianMenuItem) => void;
 }
 
-export function TrendingSection({ title, titleHi, items, onViewItem }: TrendingSectionProps) {
-  const { language } = useIndianFood();
-
+export function TrendingSection({ title, items, onViewItem }: TrendingSectionProps) {
   return (
     <div className="mt-8">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-5 h-5 text-primary" />
-        <h2 className="text-lg font-bold">
-          {language === 'hindi' ? titleHi : language === 'english' ? title : `${title} / ${titleHi}`}
-        </h2>
+        <h2 className="text-lg font-bold">{title}</h2>
       </div>
 
       <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
@@ -67,7 +61,7 @@ export function TrendingSection({ title, titleHi, items, onViewItem }: TrendingS
               {/* Content */}
               <div className="p-3">
                 <h3 className="font-semibold text-sm line-clamp-1 mb-1">
-                  {language === 'hindi' ? item.nameHi : item.nameEn}
+                  {item.nameEn}
                 </h3>
                 <p className="text-xs text-muted-foreground mb-2 capitalize">
                   {item.region.replace('_', ' ')}

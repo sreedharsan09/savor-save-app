@@ -34,7 +34,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [budgetMax, setBudgetMax] = useState(500);
   const [goals, setGoals] = useState<UserGoal[]>([]);
   const [name, setName] = useState('');
-  const [city, setCity] = useState('Lonavla');
+  const [city, setCity] = useState('Mumbai');
   const [state, setState] = useState('Maharashtra');
 
   const totalSteps = 4;
@@ -73,7 +73,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       foodStyles: foodStyles.length > 0 ? foodStyles : ['home_style'],
       budgetMin,
       budgetMax,
-      language: 'both',
+      language: 'english',
       goals,
       onboardingComplete: true,
       createdAt: new Date(),
@@ -84,10 +84,10 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const canProceed = () => {
     switch (step) {
-      case 0: return true; // Dietary always valid
+      case 0: return true;
       case 1: return regionalPreferences.length >= 2;
-      case 2: return true; // Spice level always valid
-      case 3: return true; // Budget always valid
+      case 2: return true;
+      case 3: return true;
       default: return true;
     }
   };
@@ -145,7 +145,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               >
                 <div className="text-center mb-8">
                   <h1 className="text-2xl font-bold mb-2">What's your eating style?</h1>
-                  <p className="text-muted-foreground">आप क्या खाते हैं?</p>
+                  <p className="text-muted-foreground">Tell us about your dietary preferences</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -164,7 +164,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                     >
                       <span className="text-3xl block mb-2">{option.icon}</span>
                       <p className="font-medium">{option.nameEn}</p>
-                      <p className="text-sm text-muted-foreground">{option.nameHi}</p>
                     </motion.button>
                   ))}
                 </div>
@@ -182,7 +181,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               >
                 <div className="text-center mb-8">
                   <h1 className="text-2xl font-bold mb-2">Which cuisines do you love?</h1>
-                  <p className="text-muted-foreground">कौन सी रीजनल खाना पसंद है? (Select at least 2)</p>
+                  <p className="text-muted-foreground">Select at least 2 regional cuisines</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -204,7 +203,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                     >
                       <span className="text-2xl block mb-1">{cuisine.icon}</span>
                       <p className="font-medium text-sm">{cuisine.nameEn}</p>
-                      <p className="text-xs text-muted-foreground">{cuisine.nameHi}</p>
                     </motion.button>
                   ))}
                 </div>
@@ -222,7 +220,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               >
                 <div className="text-center mb-8">
                   <h1 className="text-2xl font-bold mb-2">How spicy do you like it?</h1>
-                  <p className="text-muted-foreground">कितना तीखा पसंद है?</p>
+                  <p className="text-muted-foreground">Select your spice tolerance</p>
                 </div>
 
                 <div className="space-y-3 mb-8">
@@ -242,7 +240,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                       <span className="text-2xl">{level.icon}</span>
                       <div className="text-left">
                         <p className="font-medium">{level.nameEn}</p>
-                        <p className="text-sm text-muted-foreground">{level.nameHi}</p>
                       </div>
                     </motion.button>
                   ))}
@@ -250,7 +247,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
                 <div className="text-center mb-4">
                   <h2 className="text-lg font-semibold">Food type preferences</h2>
-                  <p className="text-sm text-muted-foreground">खाने का प्रकार</p>
+                  <p className="text-sm text-muted-foreground">What kind of food do you prefer?</p>
                 </div>
 
                 <div className="flex flex-wrap gap-2 justify-center">
@@ -286,12 +283,12 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               >
                 <div className="text-center mb-8">
                   <h1 className="text-2xl font-bold mb-2">Let's personalize your experience</h1>
-                  <p className="text-muted-foreground">आइए आपके अनुभव को व्यक्तिगत बनाएं</p>
+                  <p className="text-muted-foreground">Tell us about yourself and your budget</p>
                 </div>
 
                 {/* Name input */}
                 <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">Your Name / आपका नाम</label>
+                  <label className="block text-sm font-medium mb-2">Your Name</label>
                   <input
                     type="text"
                     value={name}
@@ -304,7 +301,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 {/* Location */}
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2">City / शहर</label>
+                    <label className="block text-sm font-medium mb-2">City</label>
                     <input
                       type="text"
                       value={city}
@@ -313,7 +310,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">State / राज्य</label>
+                    <label className="block text-sm font-medium mb-2">State</label>
                     <input
                       type="text"
                       value={state}
@@ -325,7 +322,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
                 {/* Budget range */}
                 <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">Budget per meal / प्रति भोजन बजट</label>
+                  <label className="block text-sm font-medium mb-2">Budget per meal</label>
                   <div className="bg-card rounded-xl p-4 border border-border">
                     <div className="flex justify-between text-2xl font-bold text-primary mb-4">
                       <span>₹{budgetMin}</span>
@@ -357,7 +354,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
                 {/* Goals */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Quick goals (optional) / लक्ष्य</label>
+                  <label className="block text-sm font-medium mb-2">Quick goals (optional)</label>
                   <div className="flex flex-wrap gap-2">
                     {USER_GOALS.map((goal) => (
                       <motion.button
@@ -411,11 +408,11 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               {step === totalSteps - 1 ? (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  <span>Start Exploring / शुरू करें</span>
+                  <span>Start Exploring</span>
                 </>
               ) : (
                 <>
-                  <span>Continue / आगे बढ़ें</span>
+                  <span>Continue</span>
                   <ChevronRight className="w-5 h-5" />
                 </>
               )}

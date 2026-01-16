@@ -11,7 +11,7 @@ interface SmartSearchBarProps {
 }
 
 export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearchBarProps) {
-  const { menuItems, restaurants, language } = useIndianFood();
+  const { menuItems, restaurants } = useIndianFood();
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
@@ -24,7 +24,6 @@ export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearch
     // Food items matching
     const matchingItems = menuItems.filter(item =>
       item.nameEn.toLowerCase().includes(q) ||
-      item.nameHi.includes(query) ||
       item.description.toLowerCase().includes(q) ||
       item.region.includes(q)
     ).slice(0, 4);
@@ -43,8 +42,7 @@ export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearch
 
     // Cuisine matching
     const matchingCuisines = REGIONAL_CUISINES.filter(c =>
-      c.nameEn.toLowerCase().includes(q) ||
-      c.nameHi.includes(query)
+      c.nameEn.toLowerCase().includes(q)
     ).slice(0, 3);
 
     // Location matching
@@ -83,7 +81,7 @@ export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearch
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-          placeholder={language === 'hindi' ? 'क्या खाना है? खोजें...' : 'Craving something? Search...'}
+          placeholder="Craving something? Search..."
           className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
         />
         {query && (
@@ -149,9 +147,7 @@ export function SmartSearchBar({ onSelectItem, onSelectRestaurant }: SmartSearch
                           className="w-12 h-12 rounded-xl object-cover"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
-                            {language === 'hindi' ? item.nameHi : item.nameEn}
-                          </p>
+                          <p className="font-medium truncate">{item.nameEn}</p>
                           <p className="text-xs text-muted-foreground">
                             ₹{item.price.min} - {item.price.max} • {item.region.replace('_', ' ')}
                           </p>
