@@ -11,52 +11,52 @@ interface CategoryBrowserProps {
 
 type CategoryType = 'regional' | 'meal' | 'diet' | 'time' | 'price' | 'spice';
 
-const categories: { id: CategoryType; label: string; labelHi: string; icon: string }[] = [
-  { id: 'regional', label: 'By Regional Cuisine', labelHi: 'क्षेत्रीय व्यंजन', icon: '🍛' },
-  { id: 'meal', label: 'By Meal Type', labelHi: 'भोजन का प्रकार', icon: '🕐' },
-  { id: 'diet', label: 'By Diet Type', labelHi: 'आहार प्रकार', icon: '🥗' },
-  { id: 'time', label: 'By Cooking Time', labelHi: 'पकाने का समय', icon: '⚡' },
-  { id: 'price', label: 'By Price Range', labelHi: 'मूल्य सीमा', icon: '💰' },
-  { id: 'spice', label: 'By Spice Level', labelHi: 'मसाला स्तर', icon: '🌶️' },
+const categories: { id: CategoryType; label: string; icon: string }[] = [
+  { id: 'regional', label: 'By Regional Cuisine', icon: '🍛' },
+  { id: 'meal', label: 'By Meal Type', icon: '🕐' },
+  { id: 'diet', label: 'By Diet Type', icon: '🥗' },
+  { id: 'time', label: 'By Cooking Time', icon: '⚡' },
+  { id: 'price', label: 'By Price Range', icon: '💰' },
+  { id: 'spice', label: 'By Spice Level', icon: '🌶️' },
 ];
 
-const mealTypes: { id: MealType; label: string; labelHi: string; icon: string }[] = [
-  { id: 'breakfast', label: 'Breakfast', labelHi: 'नाश्ता', icon: '🌅' },
-  { id: 'lunch', label: 'Lunch', labelHi: 'दोपहर का खाना', icon: '🍛' },
-  { id: 'snacks', label: 'Snacks', labelHi: 'नमकीन', icon: '🍿' },
-  { id: 'dinner', label: 'Dinner', labelHi: 'रात का खाना', icon: '🌙' },
-  { id: 'desserts', label: 'Desserts', labelHi: 'मिठाई', icon: '🍮' },
+const mealTypes: { id: MealType; label: string; icon: string }[] = [
+  { id: 'breakfast', label: 'Breakfast', icon: '🌅' },
+  { id: 'lunch', label: 'Lunch', icon: '🍛' },
+  { id: 'snacks', label: 'Snacks', icon: '🍿' },
+  { id: 'dinner', label: 'Dinner', icon: '🌙' },
+  { id: 'desserts', label: 'Desserts', icon: '🍮' },
 ];
 
 const dietTypes = [
-  { id: 'veg', label: 'Pure Vegetarian', labelHi: 'शुद्ध शाकाहारी', icon: '🟢' },
-  { id: 'jain', label: 'Jain Food', labelHi: 'जैन भोजन', icon: '🙏' },
-  { id: 'nonveg', label: 'Non-Vegetarian', labelHi: 'मांसाहारी', icon: '🔴' },
-  { id: 'highprotein', label: 'High Protein', labelHi: 'प्रोटीन युक्त', icon: '💪' },
-  { id: 'lowcal', label: 'Low Calorie', labelHi: 'कम कैलोरी', icon: '🥬' },
+  { id: 'veg', label: 'Pure Vegetarian', icon: '🟢' },
+  { id: 'jain', label: 'Jain Food', icon: '🙏' },
+  { id: 'nonveg', label: 'Non-Vegetarian', icon: '🔴' },
+  { id: 'highprotein', label: 'High Protein', icon: '💪' },
+  { id: 'lowcal', label: 'Low Calorie', icon: '🥬' },
 ];
 
 const cookingTimes = [
-  { id: 'quick', label: 'Quick (15 min)', labelHi: 'जल्दी (15 मिनट)', max: 15 },
-  { id: 'medium', label: 'Medium (30 min)', labelHi: 'मध्यम (30 मिनट)', max: 30 },
-  { id: 'elaborate', label: 'Elaborate (1 hour+)', labelHi: 'विस्तृत (1 घंटा+)', max: 999 },
+  { id: 'quick', label: 'Quick (15 min)', max: 15 },
+  { id: 'medium', label: 'Medium (30 min)', max: 30 },
+  { id: 'elaborate', label: 'Elaborate (1 hour+)', max: 999 },
 ];
 
 const priceRanges = [
-  { id: 'budget', label: 'Budget (₹50-150)', labelHi: 'बजट (₹50-150)', min: 50, max: 150 },
-  { id: 'mid', label: 'Mid-range (₹150-300)', labelHi: 'मध्य-श्रेणी (₹150-300)', min: 150, max: 300 },
-  { id: 'premium', label: 'Premium (₹300+)', labelHi: 'प्रीमियम (₹300+)', min: 300, max: 9999 },
+  { id: 'budget', label: 'Budget (₹50-150)', min: 50, max: 150 },
+  { id: 'mid', label: 'Mid-range (₹150-300)', min: 150, max: 300 },
+  { id: 'premium', label: 'Premium (₹300+)', min: 300, max: 9999 },
 ];
 
 const spiceLevels = [
-  { id: 'mild', label: 'Mild', labelHi: 'हल्का', icon: '🌶️' },
-  { id: 'medium', label: 'Medium', labelHi: 'मध्यम', icon: '🌶️🌶️' },
-  { id: 'spicy', label: 'Spicy', labelHi: 'तीखा', icon: '🌶️🌶️🌶️' },
-  { id: 'extra-spicy', label: 'Extra Hot', labelHi: 'एक्स्ट्रा तीखा', icon: '🌶️🌶️🌶️🌶️' },
+  { id: 'mild', label: 'Mild', icon: '🌶️' },
+  { id: 'medium', label: 'Medium', icon: '🌶️🌶️' },
+  { id: 'spicy', label: 'Spicy', icon: '🌶️🌶️🌶️' },
+  { id: 'extra-spicy', label: 'Extra Hot', icon: '🌶️🌶️🌶️🌶️' },
 ];
 
 export function CategoryBrowser({ onSelectItem }: CategoryBrowserProps) {
-  const { menuItems, language } = useIndianFood();
+  const { menuItems } = useIndianFood();
   const [expandedCategory, setExpandedCategory] = useState<CategoryType | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
@@ -106,15 +106,15 @@ export function CategoryBrowser({ onSelectItem }: CategoryBrowserProps) {
   const getSubcategories = () => {
     switch (expandedCategory) {
       case 'regional':
-        return REGIONAL_CUISINES.map(c => ({ id: c.id, label: c.nameEn, labelHi: c.nameHi, icon: c.icon }));
+        return REGIONAL_CUISINES.map(c => ({ id: c.id, label: c.nameEn, icon: c.icon }));
       case 'meal':
         return mealTypes;
       case 'diet':
         return dietTypes;
       case 'time':
-        return cookingTimes.map(t => ({ id: t.id, label: t.label, labelHi: t.labelHi, icon: '⏱️' }));
+        return cookingTimes.map(t => ({ id: t.id, label: t.label, icon: '⏱️' }));
       case 'price':
-        return priceRanges.map(r => ({ id: r.id, label: r.label, labelHi: r.labelHi, icon: '💰' }));
+        return priceRanges.map(r => ({ id: r.id, label: r.label, icon: '💰' }));
       case 'spice':
         return spiceLevels;
       default:
@@ -133,10 +133,7 @@ export function CategoryBrowser({ onSelectItem }: CategoryBrowserProps) {
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">{category.icon}</span>
-              <div className="text-left">
-                <p className="font-semibold">{category.label}</p>
-                <p className="text-sm text-muted-foreground">{category.labelHi}</p>
-              </div>
+              <p className="font-semibold">{category.label}</p>
             </div>
             <motion.div
               animate={{ rotate: expandedCategory === category.id ? 180 : 0 }}
@@ -168,7 +165,7 @@ export function CategoryBrowser({ onSelectItem }: CategoryBrowserProps) {
                         )}
                       >
                         {'icon' in sub && <span>{sub.icon}</span>}
-                        <span>{language === 'hindi' ? sub.labelHi : sub.label}</span>
+                        <span>{sub.label}</span>
                       </button>
                     ))}
                   </div>
@@ -195,9 +192,7 @@ export function CategoryBrowser({ onSelectItem }: CategoryBrowserProps) {
                             className="w-12 h-12 rounded-xl object-cover"
                           />
                           <div className="flex-1">
-                            <p className="font-medium">
-                              {language === 'hindi' ? item.nameHi : item.nameEn}
-                            </p>
+                            <p className="font-medium">{item.nameEn}</p>
                             <p className="text-xs text-muted-foreground">
                               ₹{item.price.min} - {item.price.max}
                             </p>

@@ -14,7 +14,7 @@ interface HeroRecommendationProps {
 }
 
 export function HeroRecommendation({ item, onViewDetails, onNext, whyRecommended }: HeroRecommendationProps) {
-  const { addFavorite, removeFavorite, isFavorite, language } = useIndianFood();
+  const { addFavorite, removeFavorite, isFavorite } = useIndianFood();
   const [isLiked, setIsLiked] = useState(isFavorite(item.id));
   
   const x = useMotionValue(0);
@@ -50,12 +50,6 @@ export function HeroRecommendation({ item, onViewDetails, onNext, whyRecommended
       addFavorite(item);
     }
     setIsLiked(!isLiked);
-  };
-
-  const getName = () => {
-    if (language === 'hindi') return item.nameHi;
-    if (language === 'english') return item.nameEn;
-    return `${item.nameEn} / ${item.nameHi}`;
   };
 
   return (
@@ -128,7 +122,7 @@ export function HeroRecommendation({ item, onViewDetails, onNext, whyRecommended
 
           {/* Food info overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-            <h2 className="text-2xl md:text-3xl font-bold mb-1">{getName()}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-1">{item.nameEn}</h2>
             <p className="text-white/80 text-sm mb-3">{item.region.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
             
             {/* Quick stats */}
@@ -174,7 +168,7 @@ export function HeroRecommendation({ item, onViewDetails, onNext, whyRecommended
             onClick={() => onViewDetails(item)}
             className="flex-1 py-4 rounded-2xl gradient-bg text-white font-semibold flex items-center justify-center gap-2 shadow-glow"
           >
-            यह चाहिए! / I'll take it!
+            I'll take it!
             <ChevronRight className="w-5 h-5" />
           </motion.button>
           <motion.button
@@ -183,7 +177,7 @@ export function HeroRecommendation({ item, onViewDetails, onNext, whyRecommended
             onClick={onNext}
             className="px-6 py-4 rounded-2xl border-2 border-border bg-card font-semibold hover:bg-muted transition-all"
           >
-            और दिखाएं
+            Show More
           </motion.button>
         </div>
       </motion.div>

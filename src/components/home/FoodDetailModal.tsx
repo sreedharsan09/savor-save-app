@@ -13,7 +13,7 @@ interface FoodDetailModalProps {
 }
 
 export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps) {
-  const { addFavorite, removeFavorite, isFavorite, language, restaurants } = useIndianFood();
+  const { addFavorite, removeFavorite, isFavorite, restaurants } = useIndianFood();
   const [showNutrition, setShowNutrition] = useState(false);
   const [isLiked, setIsLiked] = useState(isFavorite(item.id));
 
@@ -29,12 +29,6 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
       addFavorite(item);
     }
     setIsLiked(!isLiked);
-  };
-
-  const getName = () => {
-    if (language === 'hindi') return item.nameHi;
-    if (language === 'english') return item.nameEn;
-    return `${item.nameEn} / ${item.nameHi}`;
   };
 
   return (
@@ -113,7 +107,7 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
                 {/* Title and rating */}
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h1 className="text-2xl font-bold mb-1">{getName()}</h1>
+                    <h1 className="text-2xl font-bold mb-1">{item.nameEn}</h1>
                     <p className="text-muted-foreground capitalize">
                       {item.region.replace('_', ' ')} Cuisine
                     </p>
@@ -147,21 +141,18 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
                 <div className="mb-6">
                   <h2 className="font-semibold mb-2">Description</h2>
                   <p className="text-muted-foreground">{item.description}</p>
-                  {item.descriptionHi && (
-                    <p className="text-muted-foreground mt-1">{item.descriptionHi}</p>
-                  )}
                 </div>
 
                 {/* Ingredients */}
                 <div className="mb-6">
-                  <h2 className="font-semibold mb-2">What's in it / क्या है इसमें</h2>
+                  <h2 className="font-semibold mb-2">Ingredients</h2>
                   <div className="flex flex-wrap gap-2">
                     {item.ingredients.map((ing, i) => (
                       <span
                         key={i}
                         className="px-3 py-1.5 rounded-full bg-muted text-sm"
                       >
-                        {language === 'hindi' ? ing.hi : language === 'english' ? ing.en : `${ing.en} (${ing.hi})`}
+                        {ing.en}
                       </span>
                     ))}
                   </div>
@@ -174,7 +165,7 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
                       onClick={() => setShowNutrition(!showNutrition)}
                       className="w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border"
                     >
-                      <span className="font-semibold">Nutrition Facts / पोषण तथ्य</span>
+                      <span className="font-semibold">Nutrition Facts</span>
                       <motion.div
                         animate={{ rotate: showNutrition ? 180 : 0 }}
                       >
@@ -234,7 +225,7 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
                 {/* Where to get */}
                 {availableRestaurants.length > 0 && (
                   <div className="mb-6">
-                    <h2 className="font-semibold mb-3">Where to get / कहां मिलेगा</h2>
+                    <h2 className="font-semibold mb-3">Where to get it</h2>
                     <div className="space-y-3">
                       {availableRestaurants.map((restaurant) => (
                         <div
@@ -282,7 +273,7 @@ export function FoodDetailModal({ item, isOpen, onClose }: FoodDetailModalProps)
                 </button>
                 <button className="flex-1 py-4 rounded-2xl gradient-bg text-white font-semibold flex items-center justify-center gap-2 shadow-glow">
                   <ShoppingBag className="w-5 h-5" />
-                  Order Now / Recipe
+                  Order Now
                 </button>
               </div>
             </div>
