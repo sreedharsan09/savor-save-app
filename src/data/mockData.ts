@@ -937,3 +937,12 @@ export const categorySpendingData = [
   { name: 'Coffee', value: 330, color: '#8B5CF6' },
   { name: 'Fast Food', value: 280, color: '#6B7280' },
 ];
+
+export const cuisineSpendingData = [
+  { cuisine: 'Indian', amount: 2450, orders: 8 },
+  { cuisine: 'Chinese', amount: 1200, orders: 4 },
+  { cuisine: 'Italian', amount: 1200, orders: 2 },
+  { cuisine: 'South Indian', amount: 640, orders: 3 },
+  { cuisine: 'Thai', amount: 380, orders: 2 },
+  { cuisine: 'Fast Food', amount: 560, orders: 4 },
+];
