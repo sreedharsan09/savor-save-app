@@ -65,6 +65,66 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar: string | null
+          budget_max: number | null
+          budget_min: number | null
+          city: string | null
+          created_at: string
+          dietary: string | null
+          email: string | null
+          food_styles: string[] | null
+          goals: string[] | null
+          id: string
+          name: string | null
+          phone: string | null
+          regional_preferences: string[] | null
+          spice_level: string | null
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          city?: string | null
+          created_at?: string
+          dietary?: string | null
+          email?: string | null
+          food_styles?: string[] | null
+          goals?: string[] | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          regional_preferences?: string[] | null
+          spice_level?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          city?: string | null
+          created_at?: string
+          dietary?: string | null
+          email?: string | null
+          food_styles?: string[] | null
+          goals?: string[] | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          regional_preferences?: string[] | null
+          spice_level?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_budgets: {
         Row: {
           created_at: string
