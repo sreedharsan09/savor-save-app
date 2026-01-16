@@ -33,12 +33,12 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const defaultAvatars = [
-  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
+  'https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=b6e3f4',
+  'https://api.dicebear.com/7.x/adventurer/svg?seed=Aneka&backgroundColor=ffd5dc',
+  'https://api.dicebear.com/7.x/adventurer/svg?seed=Milo&backgroundColor=c0aede',
+  'https://api.dicebear.com/7.x/adventurer/svg?seed=Luna&backgroundColor=d1f4d9',
+  'https://api.dicebear.com/7.x/adventurer/svg?seed=Leo&backgroundColor=ffdfba',
+  'https://api.dicebear.com/7.x/adventurer/svg?seed=Maya&backgroundColor=ffeaa7',
 ];
 
 export function EditableProfileView() {
