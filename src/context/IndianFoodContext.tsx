@@ -18,6 +18,8 @@ import {
   MealType
 } from '@/types/indian-food';
 import { indianMenuItems, indianRestaurants, getMealContext } from '@/data/indian-food-data';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 
 interface IndianFoodContextType {
   // User Profile
@@ -89,6 +91,8 @@ const defaultAchievements: Achievement[] = [
 ];
 
 export function IndianFoodProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  
   // Initialize state from localStorage
   const [userProfile, setUserProfileState] = useState<IndianUserProfile | null>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.profile);
@@ -125,12 +129,99 @@ export function IndianFoodProvider({ children }: { children: ReactNode }) {
     return (saved as 'english' | 'hindi' | 'both') || 'both';
   });
 
-  // Persist to localStorage
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+
+  // Load profile from database when user is authenticated
+  useEffect(() => {
+    async function loadProfileFromDB() {
+      if (!user) {
+        setIsProfileLoaded(false);
+        return;
+      }
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading profile:', error);
+          return;
+        }
+
+        if (profile) {
+          // Map database profile to IndianUserProfile
+          const dbProfile: IndianUserProfile = {
+            name: profile.name || user.email?.split('@')[0] || 'User',
+            email: profile.email || user.email,
+            location: {
+              city: profile.city || '',
+              state: profile.state || '',
+            },
+            dietary: (profile.dietary as DietaryType) || 'vegetarian',
+            regionalPreferences: (profile.regional_preferences as RegionalCuisine[]) || ['north_indian', 'south_indian'],
+            spiceLevel: (profile.spice_level as SpiceLevel) || 'medium',
+            budgetMin: profile.budget_min || 100,
+            budgetMax: profile.budget_max || 500,
+            foodStyles: (profile.food_styles as FoodStyle[]) || ['home_style', 'restaurant_style'],
+            goals: (profile.goals as UserGoal[]) || ['eat_healthier'],
+            language: 'both',
+            onboardingComplete: true,
+            createdAt: new Date(profile.created_at),
+          };
+          setUserProfileState(dbProfile);
+        }
+        setIsProfileLoaded(true);
+      } catch (err) {
+        console.error('Error loading profile:', err);
+        setIsProfileLoaded(true);
+      }
+    }
+
+    loadProfileFromDB();
+  }, [user]);
+
+  // Sync profile to database when it changes
+  const syncProfileToDB = useCallback(async (profile: IndianUserProfile) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: profile.name,
+          city: profile.location?.city,
+          state: profile.location?.state,
+          dietary: profile.dietary,
+          regional_preferences: profile.regionalPreferences,
+          spice_level: profile.spiceLevel,
+          budget_min: profile.budgetMin,
+          budget_max: profile.budgetMax,
+          food_styles: profile.foodStyles,
+          goals: profile.goals,
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error syncing profile:', error);
+      }
+    } catch (err) {
+      console.error('Error syncing profile:', err);
+    }
+  }, [user]);
+
+  // Persist to localStorage and sync to DB
   useEffect(() => {
     if (userProfile) {
       localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(userProfile));
+      // Only sync to DB if profile is loaded and user is authenticated
+      if (isProfileLoaded && user) {
+        syncProfileToDB(userProfile);
+      }
     }
-  }, [userProfile]);
+  }, [userProfile, isProfileLoaded, user, syncProfileToDB]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(favorites));
